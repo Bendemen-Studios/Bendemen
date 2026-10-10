@@ -35,7 +35,6 @@ export default function CheckoutClient() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Afrekenen is niet gelukt.");
       if (typeof data.checkoutUrl !== "string" || !data.checkoutUrl.startsWith("https://")) throw new Error("De betaalpagina kon niet veilig worden geopend.");
-      localStorage.removeItem("bendemen-cart");
       window.location.assign(data.checkoutUrl);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Er ging iets mis. Probeer het opnieuw.");
