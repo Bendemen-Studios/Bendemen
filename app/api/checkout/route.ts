@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
         line_items,
         shipping_lines: [{ method_id: shippingMethodId, method_title: shippingTitle, total: Number(shippingCost).toFixed(2) }],
         customer_note: typeof body.note === "string" ? body.note.trim().slice(0, 500) : "",
-        meta_data: [{ key: "_bendemen_headless_source", value: "bendemen-headless-shop" }],
+        meta_data: [{ key: "bendemen_headless_source", value: "bendemen-headless-shop" }],
       }),
     });
     if (!Number.isFinite(Number(order.total)) || Number(order.total) <= 0) {
@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
       });
       await wooFetch("orders/" + order.id, {
         method: "PUT",
-        body: JSON.stringify({ meta_data: [{ key: "_bendemen_mollie_payment_id", value: payment.id }] }),
+        body: JSON.stringify({ meta_data: [{ key: "bendemen_mollie_payment_id", value: payment.id }] }),
       });
       return NextResponse.json({ checkoutUrl: payment.checkoutUrl });
     } catch (error) {
