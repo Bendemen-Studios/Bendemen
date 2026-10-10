@@ -78,7 +78,8 @@ function bendemen_bridge_login(WP_REST_Request $request) {
     $email = sanitize_email((string) $request->get_param('email'));
     $password = (string) $request->get_param('password');
     $user = is_email($email) ? get_user_by('email', $email) : false;
-    if (!$user || !wp_check_password($password, $user->user_pass, $user->ID) || !in_array('customer', (array) $user->roles, true)) {
+    $authenticated = $user ? wp_authenticate($user->user_login, $password) : false;
+    if (!$user || is_wp_error($authenticated) || !$authenticated || (int) $authenticated->ID !== (int) $user->ID || !in_array('customer', (array) $user->roles, true)) {
         return new WP_Error('bendemen_login_failed', 'E-mailadres of wachtwoord is onjuist.', ['status' => 401]);
     }
     return rest_ensure_response(bendemen_bridge_user_payload($user));
