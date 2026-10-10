@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getProduct, getProductVariations, wooFetch, type WooProduct, type WooVariation } from "@/lib/woocommerce";
+import { getShippingRates, type ShippingItem } from "@/lib/shipping";
 import { createMolliePayment } from "@/lib/mollie";
 
 export const runtime = "nodejs";
@@ -18,19 +19,14 @@ export async function POST(req: NextRequest) {
     const required = ["firstName", "lastName", "address", "postcode", "city"];
     if (!Array.isArray(items) || items.length < 1 || items.length > 30 ||
         !emailOk(body.email) || body.acceptedTerms !== true || required.some((field) => !textField(body[field])) ||
+        !textField(body.shippingRateId, 200) ||
         (body.phone != null && (typeof body.phone !== "string" || body.phone.length > 40))) {
-      return NextResponse.json({ error: "Controleer je winkelwagen en alle verplichte gegevens." }, { status: 400 });
+      return NextResponse.json({ error: "Controleer je winkelwagen, bezorggegevens en verzendoptie." }, { status: 400 });
     }
     if (items.some((item) => !item || !Number.isSafeInteger(item.productId) || item.productId < 1 ||
         !Number.isSafeInteger(item.quantity) || item.quantity < 1 || item.quantity > 99 ||
         (item.variationId != null && (!Number.isSafeInteger(item.variationId) || item.variationId < 1)))) {
       return NextResponse.json({ error: "Een product of aantal is ongeldig." }, { status: 400 });
-    }
-    const shippingMethodId = process.env.WOOCOMMERCE_SHIPPING_METHOD_ID;
-    const shippingTitle = process.env.WOOCOMMERCE_SHIPPING_METHOD_TITLE || "Verzending";
-    const shippingCost = process.env.WOOCOMMERCE_SHIPPING_COST;
-    if (!shippingMethodId || shippingCost == null || !Number.isFinite(Number(shippingCost)) || Number(shippingCost) < 0) {
-      return NextResponse.json({ error: "De webshop is nog niet klaar om bestellingen te verzenden. Stel de verzendmethode in." }, { status: 503 });
     }
 
     const line_items: { product_id: number; variation_id?: number; quantity: number }[] = [];
@@ -63,23 +59,47 @@ export async function POST(req: NextRequest) {
 
     const firstName = body.firstName.trim();
     const lastName = body.lastName.trim();
+    const address = body.address.trim();
+    const postcode = body.postcode.trim().toUpperCase();
+    const city = body.city.trim();
     const billing = {
-      first_name: firstName, last_name: lastName, address_1: body.address.trim(),
-      postcode: body.postcode.trim().toUpperCase(), city: body.city.trim(), country: "NL",
+      first_name: firstName, last_name: lastName, address_1: address,
+      postcode, city, country: "NL",
       email: body.email.trim().toLowerCase(), ...(typeof body.phone === "string" && body.phone.trim() ? { phone: body.phone.trim() } : {}),
     };
+
+    // Never trust a shipping amount from the browser. Recalculate the selected rate
+    // server-side for the current cart and destination before creating the order.
+    const shippingRates = await getShippingRates(items.map((item): ShippingItem => ({
+      productId: item.productId, quantity: item.quantity,
+      ...(item.variationId ? { variationId: item.variationId } : {}),
+    })), { country: "NL", address_1: address, postcode, city });
+    const selectedRate = shippingRates.find((rate) => rate.id === body.shippingRateId);
+    if (!selectedRate) {
+      return NextResponse.json({ error: "Deze verzendoptie is niet meer beschikbaar. Haal de verzendopties opnieuw op." }, { status: 409 });
+    }
+
     const order = await wooFetch<WooOrder>("orders", {
       method: "POST",
       body: JSON.stringify({
         status: "pending", set_paid: false, currency: "EUR", created_via: "bendemen-headless-shop",
         payment_method: "mollie", payment_method_title: "Mollie",
         billing,
-        shipping: { first_name: firstName, last_name: lastName, address_1: body.address.trim(),
-          postcode: body.postcode.trim().toUpperCase(), city: body.city.trim(), country: "NL" },
+        shipping: { first_name: firstName, last_name: lastName, address_1: address,
+          postcode, city, country: "NL" },
         line_items,
-        shipping_lines: [{ method_id: shippingMethodId, method_title: shippingTitle, total: Number(shippingCost).toFixed(2) }],
+        shipping_lines: [{
+          method_id: selectedRate.method_id,
+          method_title: selectedRate.label,
+          instance_id: selectedRate.instance_id,
+          total: Number(selectedRate.cost).toFixed(2),
+          taxes: selectedRate.taxes.map((tax) => ({ id: tax.id, total: Number(tax.total).toFixed(2) })),
+        }],
         customer_note: typeof body.note === "string" ? body.note.trim().slice(0, 500) : "",
-        meta_data: [{ key: "bendemen_headless_source", value: "bendemen-headless-shop" }],
+        meta_data: [
+          { key: "bendemen_headless_source", value: "bendemen-headless-shop" },
+          { key: "bendemen_shipping_rate_id", value: selectedRate.id },
+        ],
       }),
     });
     if (order.currency !== "EUR") throw new Error("WooCommerce store currency must be EUR for Mollie checkout");
