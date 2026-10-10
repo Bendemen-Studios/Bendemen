@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getMolliePayment } from "@/lib/mollie";
 import { wooFetch } from "@/lib/woocommerce";
+import ClearCartAfterPayment from "./clear-cart";
 
 export const dynamic = "force-dynamic";
 
@@ -38,6 +39,7 @@ export default async function PaymentReturn({ searchParams }: { searchParams: Pr
         : "Mollie heeft je teruggestuurd. De definitieve betaalstatus wordt veilig bij Mollie gecontroleerd en kan enkele momenten nodig hebben.";
   return <main className="status-card">
     <Link className="wordmark" href="/">BENDEMEN<span>®</span></Link>
+    <ClearCartAfterPayment paid={paid} />
     <span className="eyebrow">{paid ? "BETALING BEVESTIGD" : failed ? "BETALING NIET VOLTOOID" : "BESTELLINGSCONTROLE"}</span>
     <h1>{title}</h1>
     <p>{description}</p>
