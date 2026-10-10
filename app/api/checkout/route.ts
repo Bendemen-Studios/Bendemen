@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
     const line_items: { product_id: number; variation_id?: number; quantity: number }[] = [];
     for (const item of items) {
       const product: WooProduct = await getProduct(item.productId);
-      if (product.status !== "publish" || (product.type !== "variable" && (!product.purchasable || product.stock_status === "outofstock"))) {
+      if (product.status !== "publish" || !["simple", "variable"].includes(product.type) || (product.type !== "variable" && (!product.purchasable || product.stock_status === "outofstock"))) {
         return NextResponse.json({ error: product.name + " is niet beschikbaar." }, { status: 409 });
       }
       if (product.type === "variable") {
