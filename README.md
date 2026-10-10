@@ -92,6 +92,19 @@ De frontend bevat `/account` voor registratie, inloggen, uitloggen en het actuel
 De kortingsberekening gebruikt de cart engine van Points & Rewards, inclusief de geconfigureerde product-/categoriebeperkingen en kortingslimieten. Test met verschillende producten en puntenstanden voordat je dit live gebruikt.
 
 
+## Bestellingen en PDF-facturen
+
+De accountpagina toont de 25 meest recente bestellingen van de ingelogde klant. Het getoonde bestelnummer komt uit WooCommerce `$order->get_order_number()`, zodat een actieve plugin voor sequential order numbers zijn officiële nummer kan leveren; het interne order-ID wordt alleen intern gebruikt om de bestelling veilig terug te vinden.
+
+1. Installeer en activeer **[PDF Invoices & Packing Slips for WooCommerce (WP Overnight)](https://wordpress.org/plugins/woocommerce-pdf-invoices-packing-slips/)** op dezelfde WordPress-installatie als WooCommerce.
+2. Upload en activeer de bijgewerkte `wordpress-plugin/bendemen-account-bridge/bendemen-account-bridge.php`.
+3. Open de PDF Invoices & Packing Slips-instellingen en configureer bedrijfsgegevens, btw-/factuurgegevens, factuurnummering en de statussen waarvoor facturen beschikbaar mogen zijn. Schakel het downloaden van facturen voor klanten in.
+4. Een ingelogde klant ziet onder **Mijn bestellingen & facturen** het officiële bestelnummer, datum, status en totaal. Bij verwerkte/betaalde bestellingen opent **Factuur PDF** de factuur via de PDF-plugin.
+5. De bridge laat de PDF-plugin de PDF en factuurnummering genereren. Een kortlevende eenmalige token is gekoppeld aan zowel de ingelogde klant als de bestelling; de bridge controleert eigenaarschap en status vóór de download. Facturen worden niet beschikbaar gemaakt voor openstaande, geannuleerde of mislukte bestellingen.
+
+De bestelnummerreeks en de factuurnummerreeks zijn twee aparte instellingen: het bestelnummer komt uit WooCommerce/sequential-order-number-plugin; het factuurnummer komt uit PDF Invoices & Packing Slips. Test de PDF met een betaalde testbestelling en controleer bedrijfsgegevens, btw, factuurnummer en downloadrechten voordat je dit voor de administratie gebruikt.
+
+
 ## YITH Advanced Refund System
 
 De accountpagina bevat een beveiligde koppeling naar de native WooCommerce-bestellingenpagina voor refundaanvragen. De server maakt een eenmalige, 90 seconden geldige toegangstoken aan en koppelt deze aan de ingelogde klant. De bridge controleert ook of YITH Advanced Refund System als plugin actief staat.
