@@ -83,7 +83,7 @@ pm2 startup
 
 De frontend bevat `/account` voor registratie, inloggen, uitloggen en het actuele saldo uit WooCommerce Points & Rewards. De Next.js-server bewaart de sessie in een ondertekende, httpOnly-cookie. De browser krijgt nooit de bridge-secret of WooCommerce REST API-sleutels.
 
-1. Installeer en activeer `wordpress-plugin/bendemen-account-bridge/bendemen-account-bridge.php) op WordPress.
+1. Installeer en activeer `wordpress-plugin/bendemen-account-bridge/bendemen-account-bridge.php` op WordPress.
 2. Voeg in `wp-config.php` een geheim van minimaal 32 tekens toe: `define('BENDEMEN_BRIDGE_SECRET', '...');`.
 3. Stel op de Next.js-server `BENDEMEN_BRIDGE_SECRET` in op exact dezelfde waarde en genereer daarnaast een aparte `BENDEMEN_AUTH_SECRET` van minimaal 32 tekens.
 4. Zorg dat WooCommerce en de officiële WooCommerce Points & Rewards-plugin actief zijn. Het bestaande saldo wordt niet overschreven of opnieuw aangemaakt.
