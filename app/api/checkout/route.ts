@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getProduct, getProductVariations, wooFetch, type WooProduct, type WooVariation } from "@/lib/woocommerce";
 import { getShippingRates, type ShippingItem } from "@/lib/shipping";
 import { createMolliePayment } from "@/lib/mollie";
+import { getSession } from "@/lib/auth";
 
 export const runtime = "nodejs";
 type WooOrder = { id: number; number: string; order_key: string; total: string; currency: string };
@@ -15,6 +16,7 @@ const textField = (v: unknown, max = 150): v is string =>
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+    const session = await getSession();
     const items: CheckoutItem[] = body.items;
     const required = ["firstName", "lastName", "address", "postcode", "city"];
     if (!Array.isArray(items) || items.length < 1 || items.length > 30 ||
@@ -57,6 +59,10 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    if (session && body.email.trim().toLowerCase() !== session.email.toLowerCase()) {
+      return NextResponse.json({ error: "Gebruik het e-mailadres van je Bendemen-account om punten te sparen." }, { status: 400 });
+    }
+
     const firstName = body.firstName.trim();
     const lastName = body.lastName.trim();
     const address = body.address.trim();
@@ -82,7 +88,7 @@ export async function POST(req: NextRequest) {
     const order = await wooFetch<WooOrder>("orders", {
       method: "POST",
       body: JSON.stringify({
-        status: "pending", set_paid: false, currency: "EUR", created_via: "bendemen-headless-shop",
+        status: "pending", set_paid: false, currency: "EUR", created_via: "bendemen-headless-shop", customer_id: session?.id ?? 0,
         payment_method: "mollie", payment_method_title: "Mollie",
         billing,
         shipping: { first_name: firstName, last_name: lastName, address_1: address,
