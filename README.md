@@ -14,7 +14,7 @@ Een eigen, minimalistische Next.js-webshop voor Bendemen. WooCommerce blijft de 
 
 ## Lokaal starten
 ```bash
-npm ci
+npm install
 cp .env.example .env.local
 # Vul WooCommerce-, verzend- en Mollie-instellingen in
 npm run dev
@@ -43,7 +43,7 @@ De pagina's `/voorwaarden` en `/privacy` zijn **concepten**. Vul de juridische b
 
 ## Build en VPS
 ```bash
-npm ci
+npm install
 npm run build
 npm run start
 ``
