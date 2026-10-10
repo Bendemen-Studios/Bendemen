@@ -15,8 +15,7 @@ export async function GET() {
       return NextResponse.json({ error: "De veilige terugbetalingspagina is niet correct geconfigureerd." }, { status: 502 });
     }
     return NextResponse.redirect(target, 303);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "De terugbetalingspagina is tijdelijk niet beschikbaar.";
+  } catch {
     const response = NextResponse.redirect(new URL("/account?refunds=unavailable", process.env.NEXT_PUBLIC_SITE_URL || "https://test.bendemen.com"), 303);
     response.headers.set("Cache-Control", "no-store");
     return response;
