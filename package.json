@@ -1,0 +1,8 @@
+{
+  "name": "bendemen-headless-shop",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {"dev":"next dev -p 3031","build":"next build","start":"next start -p 3031","lint":"eslint"},
+  "dependencies": {"next":"^15.5.4","react":"^19.1.1","react-dom":"^19.1.1","lucide-react":"^0.468.0"},
+  "devDependencies": {"@types/node":"^22.0.0","@types/react":"^19.0.0","@types/react-dom":"^19.0.0","typescript":"^5.8.0","eslint":"^9.0.0","eslint-config-next":"^15.5.4"}
+}
