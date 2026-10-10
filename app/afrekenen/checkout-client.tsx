@@ -19,6 +19,12 @@ export default function CheckoutClient() {
   const [selectedShippingRateId, setSelectedShippingRateId] = useState("");
   const [shippingLoading, setShippingLoading] = useState(false);
   const [shippingError, setShippingError] = useState("");
+  const [pointsBalance, setPointsBalance] = useState<number | null>(null);
+  const [pointsLabel, setPointsLabel] = useState("punten");
+  const [pointsToRedeem, setPointsToRedeem] = useState("0");
+  const [pointsQuote, setPointsQuote] = useState<{ points: number; maxPoints: number; discount: string } | null>(null);
+  const [pointsLoading, setPointsLoading] = useState(false);
+  const [pointsError, setPointsError] = useState("");
   const quoteRequestId = useRef(0);
 
   function invalidateShippingQuote() {
@@ -27,6 +33,9 @@ export default function CheckoutClient() {
     setSelectedShippingRateId("");
     setShippingError("");
     setShippingLoading(false);
+    setPointsQuote(null);
+    setPointsToRedeem("0");
+    setPointsError("");
   }
 
   useEffect(() => {
@@ -35,7 +44,42 @@ export default function CheckoutClient() {
       setItems(Array.isArray(stored) ? stored.filter((item) => Number.isInteger(item.id) && Number.isInteger(item.quantity) && item.quantity > 0) : []);
     } catch { setItems([]); }
     setReady(true);
+    fetch("/api/account/points", { cache: "no-store" }).then(async (response) => {
+      if (!response.ok) return;
+      const data = await response.json();
+      setPointsBalance(Number.isSafeInteger(data.balance) ? Math.max(0, data.balance) : 0);
+      if (typeof data.label === "string" && data.label.trim()) setPointsLabel(data.label);
+    }).catch(() => undefined);
   }, []);
+
+  async function calculatePointsQuote() {
+    const requested = Number(pointsToRedeem);
+    if (!Number.isSafeInteger(requested) || requested < 1) {
+      setPointsQuote(null); setPointsError(""); setPointsToRedeem("0"); return;
+    }
+    if (!address.trim() || postcode.trim().length < 4 || !city.trim() || !items.length) {
+      setPointsError("Vul eerst je bezorgadres in en haal de verzendopties op."); return;
+    }
+    setPointsLoading(true); setPointsError(""); setPointsQuote(null);
+    try {
+      const response = await fetch("/api/account/quote", {
+        method: "POST", headers: { "Content-Type": "application/json" }, cache: "no-store",
+        body: JSON.stringify({
+          items: items.map((item) => ({ productId: item.id, quantity: item.quantity, ...(item.variationId ? { variationId: item.variationId } : {}) })),
+          destination: { country: "NL", address_1: address.trim(), postcode: postcode.trim(), city: city.trim() },
+          points: requested,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Puntenkorting berekenen is niet gelukt.");
+      setPointsQuote({ points: Number(data.points), maxPoints: Number(data.maxPoints), discount: String(data.discount || "0.00") });
+      setPointsToRedeem(String(Number(data.points) || 0));
+      if (!Number(data.points) || Number(data.discount) <= 0) throw new Error("Voor deze bestelling kan geen puntenkorting worden toegepast.");
+    } catch (reason) {
+      setPointsQuote(null);
+      setPointsError(reason instanceof Error ? reason.message : "Puntenkorting berekenen is niet gelukt.");
+    } finally { setPointsLoading(false); }
+  }
 
   async function refreshShippingRates() {
     if (!items.length || !address.trim() || postcode.trim().length < 4 || !city.trim()) return;
@@ -71,6 +115,9 @@ export default function CheckoutClient() {
     setError("");
     try {
       if (!selectedShippingRateId) throw new Error("Vul je volledige bezorgadres in en haal de verzendopties op.");
+      if (Number(pointsToRedeem) > 0 && (!pointsQuote || pointsQuote.points !== Number(pointsToRedeem))) {
+        throw new Error("Bereken eerst opnieuw de puntenkorting voor deze bestelling.");
+      }
       const response = await fetch("/api/checkout", {
         method: "POST", headers: { "Content-Type": "application/json" }, cache: "no-store",
         body: JSON.stringify({
@@ -79,6 +126,7 @@ export default function CheckoutClient() {
           address: form.get("address"), postcode: form.get("postcode"), city: form.get("city"),
           phone: form.get("phone"), note: form.get("note"), acceptedTerms: form.get("acceptedTerms") === "on",
           shippingRateId: selectedShippingRateId,
+          pointsToRedeem: Number(pointsToRedeem) || 0,
         }),
       });
       const data = await response.json();
@@ -119,9 +167,24 @@ export default function CheckoutClient() {
           {shippingLoading && <p>Verzendopties ophalen…</p>}
           {shippingError && <p className="form-error" role="alert">{shippingError}</p>}
           {shippingRates.map((rate) => <label className="consent-row" key={rate.id}>
-            <input type="radio" name="shippingRate" value={rate.id} checked={selectedShippingRateId === rate.id} onChange={() => setSelectedShippingRateId(rate.id)} />
+            <input type="radio" name="shippingRate" value={rate.id} checked={selectedShippingRateId === rate.id} onChange={() => { setSelectedShippingRateId(rate.id); setPointsQuote(null); }} />
             <span>{rate.label} <strong>{money(Number(rate.total))}</strong></span>
           </label>)}
+        </div>
+        <div className="points-redemption" aria-live="polite">
+          <h3>Punten inwisselen</h3>
+          {pointsBalance == null ? <p><Link href="/account">Log in</Link> of maak een account aan om punten te sparen en in te wisselen.</p> : pointsBalance < 1
+            ? <p>Je hebt momenteel geen {pointsLabel} beschikbaar. Met je account spaar je punten bij geschikte bestellingen.</p>
+            : <>
+              <p>Je hebt <strong>{pointsBalance} {pointsLabel}</strong> beschikbaar.</p>
+              <label>Aantal {pointsLabel} <input type="number" min="0" max={pointsBalance} step="1" value={pointsToRedeem} onChange={(event) => { setPointsToRedeem(event.target.value); setPointsQuote(null); setPointsError(""); }} /></label>
+              <button type="button" className="text-button" disabled={pointsLoading || Number(pointsToRedeem) < 1 || !selectedShippingRateId} onClick={() => void calculatePointsQuote()}>
+                {pointsLoading ? "Korting berekenen…" : "Bereken puntenkorting"}
+              </button>
+              {pointsQuote && <p className="points-quote-result">{pointsQuote.points} {pointsLabel} ingewisseld: <strong>−{money(Number(pointsQuote.discount))}</strong></p>}
+              {pointsError && <p className="form-error" role="alert">{pointsError}</p>}
+              <small>De korting wordt op de server opnieuw berekend volgens de WooCommerce Points &amp; Rewards-regels.</small>
+            </>}
         </div>
       </section>
       <section className="checkout-section">
@@ -144,7 +207,9 @@ export default function CheckoutClient() {
         </div>)}
         <div className="checkout-total"><span>Indicatief subtotaal</span><strong>{money(subtotal)}</strong></div>
         {selectedRate && <div className="checkout-total"><span>{selectedRate.label}</span><strong>{money(Number(selectedRate.total))}</strong></div>}
-        <p className="summary-disclaimer">Verzendtarief opgehaald uit WooCommerce. Het definitieve totaal inclusief btw verschijnt op de beveiligde betaalpagina.</p>
+        {pointsQuote && <div className="checkout-total"><span>Puntenkorting</span><strong>−{money(Number(pointsQuote.discount))}</strong></div>}
+        {selectedRate && <div className="checkout-total"><span>Indicatief totaal</span><strong>{money(Math.max(0, subtotal + Number(selectedRate.total) - Number(pointsQuote?.discount || 0)))}</strong></div>}
+        <p className="summary-disclaimer">Indicatie op basis van productprijzen, verzending en eventuele puntenkorting. Het definitieve totaal inclusief btw wordt door WooCommerce berekend.</p>
       </> : <div className="empty-checkout"><p>Je winkelwagen is leeg.</p><Link href="/shop">Bekijk de collectie →</Link></div>}
       <Link className="text-button" href="/winkelwagen">← Terug naar winkelwagen</Link>
     </aside>
