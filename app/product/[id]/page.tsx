@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { formatPrice, getProduct, getProductVariations } from "@/lib/woocommerce";
+import { formatPrice, getProduct, getProductVariations, type WooProduct, type WooVariation } from "@/lib/woocommerce";
 import ProductActions from "./product-actions";
 
 export const dynamic = "force-dynamic";
@@ -8,14 +8,14 @@ export const dynamic = "force-dynamic";
 export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   if (!/^\d+$/.test(id)) notFound();
-  let product;
+  let product: WooProduct;
   try {
     product = await getProduct(Number(id));
     if (product.status !== "publish") notFound();
   } catch {
     notFound();
   }
-  let variations = [];
+  let variations: WooVariation[] = [];
   if (product.type === "variable") {
     try { variations = await getProductVariations(product.id); } catch { variations = []; }
   }
