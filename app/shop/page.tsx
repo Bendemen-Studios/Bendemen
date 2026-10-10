@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { getProducts } from "@/lib/woocommerce";
+import { getProducts, type WooProduct } from "@/lib/woocommerce";
 import ShopClient from "./shop-client";
 
 export const dynamic = "force-dynamic";
 
 export default async function Shop() {
-  let products = [];
+  let products: WooProduct[] = [];
   let unavailable = false;
   try {
     products = await getProducts();
