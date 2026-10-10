@@ -16,8 +16,13 @@ export default function AccountClient() {
   async function load() {
     const response = await fetch("/api/account/points", { cache: "no-store" });
     const data = await response.json();
-    if (response.ok) setPoints(data);
-    else setPoints(null);
+    if (response.ok) {
+      setPoints(data);
+      void loadOrders();
+    } else {
+      setPoints(null);
+      setOrders([]);
+    }
   }
   async function loadOrders() {
     setOrdersLoading(true);
