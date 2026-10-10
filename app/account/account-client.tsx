@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 type Points = { balance: number; label: string; user: { email: string; firstName: string; lastName: string } };
+type AccountOrder = { id: number; number: string; date: string; status: string; statusKey: string; total: string; currency: string; invoiceAvailable: boolean };
 export default function AccountClient() {
   const [mode, setMode] = useState<"login" | "register">("login");
   const [points, setPoints] = useState<Points | null>(null);
@@ -9,16 +10,34 @@ export default function AccountClient() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [refundNotice, setRefundNotice] = useState("");
+  const [invoiceNotice, setInvoiceNotice] = useState("");
+  const [orders, setOrders] = useState<AccountOrder[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
   async function load() {
     const response = await fetch("/api/account/points", { cache: "no-store" });
     const data = await response.json();
     if (response.ok) setPoints(data);
     else setPoints(null);
   }
+  async function loadOrders() {
+    setOrdersLoading(true);
+    try {
+      const response = await fetch("/api/account/orders", { cache: "no-store" });
+      const data = await response.json();
+      setOrders(response.ok && Array.isArray(data.orders) ? data.orders : []);
+    } catch {
+      setOrders([]);
+    } finally {
+      setOrdersLoading(false);
+    }
+  }
   useEffect(() => {
     void load();
     if (new URLSearchParams(window.location.search).get("refunds") === "unavailable") {
       setRefundNotice("De terugbetalingspagina is niet beschikbaar. Controleer of YITH Advanced Refund System actief is en probeer het opnieuw.");
+    }
+    if (new URLSearchParams(window.location.search).get("invoices") === "unavailable") {
+      setInvoiceNotice("De factuur kon niet worden gedownload. Controleer of PDF Invoices & Packing Slips actief is en probeer het opnieuw.");
     }
   }, []);
   async function submit(form: FormData) {
@@ -30,13 +49,14 @@ export default function AccountClient() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Dit is niet gelukt.");
       await load();
+      await loadOrders();
       setMessage(mode === "register" ? "Je account is aangemaakt." : "Je bent ingelogd.");
     } catch (reason) { setError(reason instanceof Error ? reason.message : "Dit is niet gelukt."); }
     finally { setBusy(false); }
   }
   async function logout() {
     await fetch("/api/account/auth", { method: "DELETE" });
-    setPoints(null); setMessage("Je bent uitgelogd."); setError("");
+    setPoints(null); setOrders([]); setMessage("Je bent uitgelogd."); setError("");
   }
   return <section className="account-card">
     {points ? <>
@@ -51,6 +71,26 @@ export default function AccountClient() {
         <h3>Een terugbetaling aanvragen?</h3>
         <p>Bekijk je bestellingen en dien een verzoek in via het beveiligde terugbetalingssysteem. De voorwaarden en status worden door YITH beheerd.</p>
         <Link className="button" href="/api/account/refunds/access">Mijn bestellingen &amp; terugbetalingen ↗</Link>
+      </div>
+      <div className="orders-account-panel">
+        <span className="eyebrow">ADMINISTRATIE</span>
+        <h3>Mijn bestellingen &amp; facturen</h3>
+        <p>Bestelnummers komen rechtstreeks uit WooCommerce, inclusief het ingestelde volgnummer. Download de PDF-factuur zodra de bestelling is verwerkt.</p>
+        {invoiceNotice && <p className="account-notice" role="alert">{invoiceNotice}</p>}
+        {ordersLoading ? <p>Bestellingen laden…</p> : orders.length === 0 ? <p>Er zijn nog geen bestellingen aan dit account gekoppeld.</p> : <div className="account-orders">
+          {orders.map((order) => <article className="account-order" key={order.id}>
+            <div className="account-order-info">
+              <strong>Bestelling #{order.number}</strong>
+              <span>{order.date ? new Intl.DateTimeFormat("nl-NL", { dateStyle: "medium" }).format(new Date(order.date)) : "Datum onbekend"} · {order.status}</span>
+            </div>
+            <div className="account-order-actions">
+              <strong>{new Intl.NumberFormat("nl-NL", { style: "currency", currency: order.currency || "EUR" }).format(Number(order.total) || 0)}</strong>
+              {order.invoiceAvailable
+                ? <Link className="account-invoice-link" href={`/api/account/orders/${order.id}/invoice`}>Factuur PDF ↓</Link>
+                : <span className="account-invoice-pending">Factuur na verwerking</span>}
+            </div>
+          </article>)}
+        </div>}
       </div>
       <div className="account-actions"><Link className="button" href="/shop">Verder winkelen ↗</Link><button className="text-button" type="button" onClick={() => void logout()}>Uitloggen</button></div>
     </> : <>
