@@ -68,7 +68,7 @@ pm2 startup
 - De PHP-plugin gebruikt de WooCommerce shipping engine. Installeer en activeer de plugin op de WooCommerce-site; alleen de Next.js-deploy is niet voldoende.
 - Controleer dat de WooCommerce REST API-sleutel hoort bij een gebruiker met `manage_woocommerce`-rechten, zodat het tariefendpoint is toegestaan.
 - Controleer de berekening van btw, verzending, kortingen en variatieprijzen met echte WooCommerce-testorders.
-- Kortingscodes, klantaccounts en orderbevestigingsmails vanuit de eigen frontend zijn nog niet apart uitgewerkt; WooCommerce e-mailinstellingen blijven van toepassing.
+- De headless accountpagina biedt registratie, login en weergave van het WooCommerce Points & Rewards-saldo. Orders van ingelogde klanten worden aan hun WooCommerce-account gekoppeld; de puntenplugin blijft verantwoordelijk voor het toekennen van verdiende punten. De aparte punten-inwisselkorting moet nog worden geïntegreerd en getest.
 - Er is geen VPS-deployment of DNS-wijziging doorgevoerd. Test build, API-sleutels, Mollie-webhook en de volledige bestelcyclus in een testomgeving voordat je de shop live zet.
 - Zet nooit API-sleutels in Git of in variabelen met de prefix `NEXT_PUBLIC_`.
 
@@ -78,3 +78,15 @@ pm2 startup
 - Accentkleur: rood (`#C3110C`).
 - Tijdelijk frontend-domein: `https://test.bendemen.com`.
 - Zet dezelfde URL in `NEXT_PUBLIC_SITE_URL` en gebruik `https://test.bendemen.com/api/mollie/webhook` als `MOLLIE_WEBHOOK_URL`.
+
+## Klantaccounts en Points & Rewards
+
+De frontend bevat `/account` voor registratie, inloggen, uitloggen en het actuele saldo uit WooCommerce Points & Rewards. De Next.js-server bewaart de sessie in een ondertekende, httpOnly-cookie. De browser krijgt nooit de bridge-secret of WooCommerce REST API-sleutels.
+
+1. Installeer en activeer `wordpress-plugin/bendemen-account-bridge/bendemen-account-bridge.php) op WordPress.
+2. Voeg in `wp-config.php` een geheim van minimaal 32 tekens toe: `define('BENDEMEN_BRIDGE_SECRET', '...');`.
+3. Stel op de Next.js-server `BENDEMEN_BRIDGE_SECRET` in op exact dezelfde waarde en genereer daarnaast een aparte `BENDEMEN_AUTH_SECRET` van minimaal 32 tekens.
+4. Zorg dat WooCommerce en de officiële WooCommerce Points & Rewards-plugin actief zijn. Het bestaande saldo wordt niet overschreven of opnieuw aangemaakt.
+5. Test registratie, inloggen, saldo ophalen en een betaalde bestelling op `test.bendemen.com`.
+
+Let op: het inwisselen van punten als korting bij de headless checkout is nog niet actief. Dit moet aansluiten op de ingestelde product-/categoriebeperkingen en de kortingsregels van de Points & Rewards-plugin; de frontend rekent daarvoor nog geen korting aan.
