@@ -90,3 +90,16 @@ De frontend bevat `/account` voor registratie, inloggen, uitloggen en het actuel
 5. Test registratie, inloggen, saldo ophalen en een betaalde bestelling op `test.bendemen.com`.
 
 De kortingsberekening gebruikt de cart engine van Points & Rewards, inclusief de geconfigureerde product-/categoriebeperkingen en kortingslimieten. Test met verschillende producten en puntenstanden voordat je dit live gebruikt.
+
+
+## YITH Advanced Refund System
+
+De accountpagina bevat een beveiligde koppeling naar de native WooCommerce-bestellingenpagina voor refundaanvragen. De server maakt een eenmalige, 90 seconden geldige toegangstoken aan en koppelt deze aan de ingelogde klant. De bridge controleert ook of YITH Advanced Refund System als plugin actief staat.
+
+1. Installeer en activeer **YITH Advanced Refund System for WooCommerce** op dezelfde WordPress-installatie als WooCommerce.
+2. Upload het bijgewerkte bestand `wordpress-plugin/bendemen-account-bridge/bendemen-account-bridge.php` naar de WordPress-pluginmap en activeer de plugin.
+3. Log in op de headless webshop en open `/account`. Gebruik **Mijn bestellingen & terugbetalingen** om veilig naar WooCommerce door te gaan.
+4. Dien de aanvraag in bij de betreffende bestelling via de door YITH aangeboden interface. YITH blijft leidend voor aanvraagtermijnen, welke producten/hoeveelheden in aanmerking komen, berichten, goedkeuringen, coupons en het daadwerkelijke terugbetalen via WooCommerce/betaalprovider.
+5. Test de volledige flow met een betaalde testbestelling. De koppeling voert zelf geen refund uit en markeert geen bestelling als terugbetaald.
+
+De koppeling gebruikt een kortlevende eenmalige token; de klant wordt niet via een e-mailadres of ordernummer geauthenticeerd. Refundaanvragen als gast zijn niet mogelijk via YITH, daarom is een ingelogd klantaccount vereist.
