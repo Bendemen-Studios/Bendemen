@@ -83,7 +83,7 @@ function bendemen_bridge_points(WP_REST_Request $request) {
     }
     return rest_ensure_response([
         'balance' => max(0, (int) WC_Points_Rewards_Manager::get_users_points($user_id)),
-        'label' => (string) get_option('wc_points_rewards_points_label', 'punten'),
+        'label' => (isset($GLOBALS['wc_points_rewards']) && is_object($GLOBALS['wc_points_rewards'])) ? (string) $GLOBALS['wc_points_rewards']->get_points_label($balance) : (string) get_option('wc_points_rewards_points_label', 'punten'),
     ]);
 }
 
