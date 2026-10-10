@@ -8,13 +8,19 @@ export default function AccountClient() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [refundNotice, setRefundNotice] = useState("");
   async function load() {
     const response = await fetch("/api/account/points", { cache: "no-store" });
     const data = await response.json();
     if (response.ok) setPoints(data);
     else setPoints(null);
   }
-  useEffect(() => { void load(); }, []);
+  useEffect(() => {
+    void load();
+    if (new URLSearchParams(window.location.search).get("refunds") === "unavailable") {
+      setRefundNotice("De terugbetalingspagina is niet beschikbaar. Controleer of YITH Advanced Refund System actief is en probeer het opnieuw.");
+    }
+  }, []);
   async function submit(form: FormData) {
     setBusy(true); setError(""); setMessage("");
     try {
