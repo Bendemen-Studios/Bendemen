@@ -32,9 +32,9 @@ export default function CartClient() {
           {item.variationLabel && <small>{item.variationLabel}</small>}
           <span>{money(Number(item.price) || 0)} per stuk</span>
           <div className="quantity-control" aria-label={"Aantal voor " + item.name}>
-            <button type="button" onClick={() => save(items.map((entry) => sameItem(entry, item) ? { ...entry, quantity: Math.max(1, entry.quantity - 1) } : entry)} aria-label="Aantal verlagen">−</button>
+            <button type="button" onClick={() => save(items.map((entry) => sameItem(entry, item) ? { ...entry, quantity: Math.max(1, entry.quantity - 1) } : entry))} aria-label="Aantal verlagen">−</button>
             <span>{item.quantity}</span>
-            <button type="button" onClick={() => save(items.map((entry) => sameItem(entry, item) ? { ...entry, quantity: Math.min(99, entry.quantity + 1) } : entry)} aria-label="Aantal verhogen" disabled={item.quantity >= 99}>+</button>
+            <button type="button" onClick={() => save(items.map((entry) => sameItem(entry, item) ? { ...entry, quantity: Math.min(99, entry.quantity + 1) } : entry))} aria-label="Aantal verhogen" disabled={item.quantity >= 99}>+</button>
           </div>
         </div>
         <strong className="cart-line-total">{money((Number(item.price) || 0) * item.quantity)}</strong>
