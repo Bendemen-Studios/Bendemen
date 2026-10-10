@@ -13,7 +13,7 @@ export type WooProduct = {
 };
 export type WooVariation = {
   id: number; price: string; regular_price: string; sale_price: string; purchasable: boolean;
-  stock_status: "instock" | "outofstock" | "onbackorder"; stock_quantity?: number | null;
+  stock_status: "instock" | "outofstock" | "onbackorder"; stock_quantity?: number | null; manage_stock?: boolean;
   attributes: { id: number; name: string; option: string }[];
 };
 
