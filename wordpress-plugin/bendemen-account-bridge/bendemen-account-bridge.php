@@ -384,7 +384,7 @@ function bendemen_bridge_create_invoice_access(WP_REST_Request $request) {
 
 /** Detect the WP Overnight PDF Invoices & Packing Slips plugin, including network activation. */
 function bendemen_bridge_pdf_invoices_active() {
-    if (function_exists('wpo_wcpdf_get_document') || class_exists('WPO\\\\WC\\\\PDF_Invoices\\\\Main')) return true;
+    if (function_exists('wpo_wcpdf_get_document') || class_exists('WPO\\WC\\PDF_Invoices\\Main')) return true;
     $plugins = (array) get_option('active_plugins', []);
     $network_plugins = array_keys((array) get_site_option('active_sitewide_plugins', []));
     foreach (array_merge($plugins, $network_plugins) as $plugin) {
