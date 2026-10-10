@@ -29,6 +29,10 @@ add_action('rest_api_init', function () {
         'methods' => 'POST', 'callback' => 'bendemen_bridge_redeem_points',
         'permission_callback' => 'bendemen_bridge_authorized',
     ]);
+    register_rest_route('bendemen/v1', '/refunds/access-token', [
+        'methods' => 'POST', 'callback' => 'bendemen_bridge_create_refund_access',
+        'permission_callback' => 'bendemen_bridge_authorized',
+    ]);
 });
 
 function bendemen_bridge_authorized($request) {
@@ -90,9 +94,12 @@ function bendemen_bridge_points(WP_REST_Request $request) {
     if (!get_user_by('id', $user_id) || !class_exists('WC_Points_Rewards_Manager')) {
         return new WP_Error('bendemen_points_unavailable', 'Points & Rewards is niet beschikbaar.', ['status' => 503]);
     }
+    $balance = max(0, (int) WC_Points_Rewards_Manager::get_users_points($user_id));
     return rest_ensure_response([
-        'balance' => max(0, (int) WC_Points_Rewards_Manager::get_users_points($user_id)),
-        'label' => (isset($GLOBALS['wc_points_rewards']) && is_object($GLOBALS['wc_points_rewards'])) ? (string) $GLOBALS['wc_points_rewards']->get_points_label($balance) : (string) get_option('wc_points_rewards_points_label', 'punten'),
+        'balance' => $balance,
+        'label' => (isset($GLOBALS['wc_points_rewards']) && is_object($GLOBALS['wc_points_rewards']) && method_exists($GLOBALS['wc_points_rewards'], 'get_points_label'))
+            ? (string) $GLOBALS['wc_points_rewards']->get_points_label($balance)
+            : (string) get_option('wc_points_rewards_points_label', 'punten'),
     ]);
 }
 
@@ -241,3 +248,69 @@ add_filter('wc_points_rewards_points_earned_for_purchase', function ($earned, $o
     $deduction = min((int) $earned, (int) WC_Points_Rewards_Manager::round_the_points(WC_Points_Rewards_Manager::calculate_points($discount)));
     return max(0, (int) $earned - $deduction);
 }, 20, 2);
+
+
+/**
+ * Create a short-lived, one-time handoff from the headless account to the
+ * native WooCommerce My Account area. YITH remains responsible for its own
+ * refund-request forms, eligibility checks, approvals and refund processing.
+ */
+function bendemen_bridge_create_refund_access(WP_REST_Request $request) {
+    $user_id = absint($request->get_param('user_id'));
+    $user = get_user_by('id', $user_id);
+    if (!$user || !in_array('customer', (array) $user->roles, true)) {
+        return new WP_Error('bendemen_refund_customer_required', 'Log in met een klantaccount om een terugbetaling aan te vragen.', ['status' => 403]);
+    }
+    if (!class_exists('WooCommerce')) {
+        return new WP_Error('bendemen_refund_woocommerce_missing', 'WooCommerce is niet actief.', ['status' => 503]);
+    }
+    $yith_active = defined('YITH_WCARS_VERSION') || class_exists('YITH_WCARS') || class_exists('YITH_WCARS_Frontend');
+    $active_plugins = (array) get_option('active_plugins', []);
+    foreach ($active_plugins as $active_plugin) {
+        if (strpos((string) $active_plugin, 'yith-advanced-refund-system-for-woocommerce') !== false) {
+            $yith_active = true;
+            break;
+        }
+    }
+    $network_plugins = (array) get_site_option('active_sitewide_plugins', []);
+    foreach (array_keys($network_plugins) as $active_plugin) {
+        if (strpos((string) $active_plugin, 'yith-advanced-refund-system-for-woocommerce') !== false) {
+            $yith_active = true;
+            break;
+        }
+    }
+    if (!$yith_active) {
+        return new WP_Error('bendemen_yith_refunds_missing', 'Activeer eerst YITH Advanced Refund System for WooCommerce.', ['status' => 503]);
+    }
+    $token = bin2hex(random_bytes(32));
+    $key = 'bendemen_refund_access_' . hash('sha256', $token);
+    set_transient($key, $user_id, 90);
+    $url = add_query_arg('bendemen_refund_access', $token, home_url('/'));
+    return rest_ensure_response(['url' => esc_url_raw($url)]);
+}
+
+/** Consume the single-use token and establish a native WordPress customer session. */
+add_action('template_redirect', function () {
+    if (!isset($_GET['bendemen_refund_access'])) return;
+    $token = sanitize_text_field(wp_unslash($_GET['bendemen_refund_access']));
+    if (!preg_match('/^[a-f0-9]{64}$/', $token)) {
+        wp_safe_redirect(wc_get_page_permalink('myaccount'));
+        exit;
+    }
+    $key = 'bendemen_refund_access_' . hash('sha256', $token);
+    $user_id = absint(get_transient($key));
+    delete_transient($key);
+    $user = $user_id ? get_user_by('id', $user_id) : false;
+    if (!$user || !in_array('customer', (array) $user->roles, true)) {
+        nocache_headers();
+        wp_safe_redirect(wc_get_page_permalink('myaccount'));
+        exit;
+    }
+    wp_set_current_user($user_id);
+    wp_set_auth_cookie($user_id, true, is_ssl());
+    do_action('wp_login', $user->user_login, $user);
+    nocache_headers();
+    $target = function_exists('wc_get_account_endpoint_url') ? wc_get_account_endpoint_url('orders') : wc_get_page_permalink('myaccount');
+    wp_safe_redirect($target);
+    exit;
+}, 1);
