@@ -1,7 +1,7 @@
 'use client';
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type Item = { id: number; name: string; price: string; quantity: number; variationId?: number; variationLabel?: string };
 type ShippingRate = { id: string; method_id: string; instance_id: number; label: string; cost: string; taxes: { id: number; total: string }[]; total: string };
@@ -19,6 +19,15 @@ export default function CheckoutClient() {
   const [selectedShippingRateId, setSelectedShippingRateId] = useState("");
   const [shippingLoading, setShippingLoading] = useState(false);
   const [shippingError, setShippingError] = useState("");
+  const quoteRequestId = useRef(0);
+
+  function invalidateShippingQuote() {
+    quoteRequestId.current += 1;
+    setShippingRates([]);
+    setSelectedShippingRateId("");
+    setShippingError("");
+    setShippingLoading(false);
+  }
 
   useEffect(() => {
     try {
@@ -30,6 +39,7 @@ export default function CheckoutClient() {
 
   async function refreshShippingRates() {
     if (!items.length || !address.trim() || postcode.trim().length < 4 || !city.trim()) return;
+    const requestId = ++quoteRequestId.current;
     setShippingLoading(true);
     setShippingError("");
     setShippingRates([]);
@@ -43,15 +53,16 @@ export default function CheckoutClient() {
         }),
       });
       const data = await response.json();
+      if (requestId !== quoteRequestId.current) return;
       if (!response.ok) throw new Error(data.error || "Verzendopties ophalen is niet gelukt.");
       const rates: ShippingRate[] = Array.isArray(data.rates) ? data.rates : [];
       setShippingRates(rates);
       if (rates.length) setSelectedShippingRateId(rates[0].id);
       else setShippingError("Er zijn geen verzendopties beschikbaar voor dit adres. Controleer de verzendzones in WooCommerce.");
     } catch (reason) {
-      setShippingError(reason instanceof Error ? reason.message : "Verzendopties ophalen is niet gelukt.");
+      if (requestId === quoteRequestId.current) setShippingError(reason instanceof Error ? reason.message : "Verzendopties ophalen is niet gelukt.");
     } finally {
-      setShippingLoading(false);
+      if (requestId === quoteRequestId.current) setShippingLoading(false);
     }
   }
 
@@ -95,10 +106,10 @@ export default function CheckoutClient() {
           <label>Voornaam<input name="firstName" required maxLength={150} autoComplete="given-name" /></label>
           <label>Achternaam<input name="lastName" required maxLength={150} autoComplete="family-name" /></label>
         </div>
-        <label>Straat en huisnummer<input name="address" required maxLength={150} autoComplete="street-address" value={address} onChange={(event) => setAddress(event.target.value)} onBlur={() => void refreshShippingRates()} /></label>
+        <label>Straat en huisnummer<input name="address" required maxLength={150} autoComplete="street-address" value={address} onChange={(event) => { setAddress(event.target.value); invalidateShippingQuote(); }} onBlur={() => void refreshShippingRates()} /></label>
         <div className="form-row">
-          <label>Postcode<input name="postcode" required maxLength={20} autoComplete="postal-code" value={postcode} onChange={(event) => setPostcode(event.target.value)} onBlur={() => void refreshShippingRates()} /></label>
-          <label>Woonplaats<input name="city" required maxLength={150} autoComplete="address-level2" value={city} onChange={(event) => setCity(event.target.value)} onBlur={() => void refreshShippingRates()} /></label>
+          <label>Postcode<input name="postcode" required maxLength={20} autoComplete="postal-code" value={postcode} onChange={(event) => { setPostcode(event.target.value); invalidateShippingQuote(); }} onBlur={() => void refreshShippingRates()} /></label>
+          <label>Woonplaats<input name="city" required maxLength={150} autoComplete="address-level2" value={city} onChange={(event) => { setCity(event.target.value); invalidateShippingQuote(); }} onBlur={() => void refreshShippingRates()} /></label>
         </div>
         <label>Land<input value="Nederland" readOnly aria-readonly="true" /></label>
         <label>Opmerking bij je bestelling <span className="optional">(optioneel)</span><textarea name="note" rows={3} maxLength={500} placeholder="Bijvoorbeeld bezorginstructies" /></label>
