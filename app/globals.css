@@ -119,3 +119,17 @@
 .refund-account-panel p{font-size:11px;line-height:1.8;color:var(--muted);margin:0 0 6px}
 .refund-account-panel .button{width:fit-content;max-width:100%}
 .account-notice{padding:12px;border:1px solid #c3110c;color:#8f0d09;background:#fff8f7;font-size:12px;line-height:1.6;margin:14px 0}
+
+
+/* Account order history and downloadable invoices */
+.orders-account-panel{display:grid;gap:12px;padding:22px 0;margin:18px 0;border-bottom:1px solid var(--line)}
+.orders-account-panel h3{font:600 20px/1.2 Manrope,sans-serif;letter-spacing:-.04em;margin:0}
+.orders-account-panel>p{font-size:11px;line-height:1.8;color:var(--muted);margin:0}
+.account-orders{display:grid;border-top:1px solid var(--line)}
+.account-order{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:15px 0;border-bottom:1px solid var(--line)}
+.account-order-info,.account-order-actions{display:grid;gap:6px;min-width:0}
+.account-order-info strong,.account-order-actions strong{font-size:12px}
+.account-order-info span,.account-invoice-pending{font-size:10px;color:var(--muted);line-height:1.6}
+.account-order-actions{justify-items:end;text-align:right}
+.account-invoice-link{font-size:10px;font-weight:700;color:var(--accent);border-bottom:1px solid var(--accent);padding-bottom:3px;white-space:nowrap}
+@media(max-width:480px){.account-order{align-items:flex-start;flex-direction:column;gap:10px}.account-order-actions{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;text-align:left;width:100%}}
