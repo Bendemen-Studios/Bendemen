@@ -384,7 +384,7 @@ function bendemen_bridge_create_invoice_access(WP_REST_Request $request) {
 
 /** Detect the WP Overnight PDF Invoices & Packing Slips plugin, including network activation. */
 function bendemen_bridge_pdf_invoices_active() {
-    if (function_exists('wpo_wcpdf_get_document') || class_exists('WPO\\WC\\PDF_Invoices\\Main')) return true;
+    if (function_exists('WPO_WCPDF') || function_exists('wpo_wcpdf_get_document') || class_exists('WPO\\WC\\PDF_Invoices\\Main')) return true;
     $plugins = (array) get_option('active_plugins', []);
     $network_plugins = array_keys((array) get_site_option('active_sitewide_plugins', []));
     foreach (array_merge($plugins, $network_plugins) as $plugin) {
@@ -421,10 +421,17 @@ add_action('template_redirect', function () {
     wp_set_auth_cookie($user_id, true, is_ssl());
     do_action('wp_login', $user->user_login, $user);
     nocache_headers();
-    $pdf_url = wp_nonce_url(
-        admin_url('admin-ajax.php?action=generate_wpo_wcpdf&template_type=invoice&order_ids=' . $order_id . '&my-account'),
-        'generate_wpo_wcpdf'
-    );
+    $pdf_url = '';
+    if (function_exists('WPO_WCPDF')) {
+        $endpoint = WPO_WCPDF()->get_instance('endpoint');
+        if (is_object($endpoint) && method_exists($endpoint, 'get_document_link')) {
+            $pdf_url = $endpoint->get_document_link($order, 'invoice', ['my-account' => 'true']);
+        }
+    }
+    if (!$pdf_url) {
+        wp_safe_redirect(add_query_arg('invoices', 'unavailable', wc_get_account_endpoint_url('orders')));
+        exit;
+    }
     wp_safe_redirect($pdf_url);
     exit;
 }, 1);
