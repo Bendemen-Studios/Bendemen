@@ -1,14 +1,15 @@
 # Bendemen Headless Shop
 
-Een eigen, minimalistische Next.js-webshop voor Bendemen. WooCommerce blijft de bron van waarheid voor producten, variaties, voorraad en bestellingen. Mollie verzorgt de beveiligde betaalpagina. De frontend draait zelfstandig op een eigen VPS.
+Een eigen, minimalistische Next.js-webshop voor Bendemen. WooCommerce blijft de bron van waarheid voor producten, variaties, voorraad, verzendzones, verzendmethoden en bestellingen. Mollie verzorgt de beveiligde betaalpagina. De frontend draait zelfstandig op een eigen VPS.
 
 ## Stack
 - Next.js 15, React 19 en TypeScript
 - WooCommerce REST API v3 (server-side; API-sleutels blijven privé)
+- WooCommerce-native shipping-zone/rate calculation via de meegeleverde WordPress-plugin
 - Mollie Payments API en server-side webhookcontrole
 - Responsive shop, zoekfunctie, categorie- en prijsfilters
 - Winkelwagen met aantallen, productvariaties en verwijderfunctie
-- Checkout met contact-/bezorggegevens, ordernotitie en akkoord met juridische pagina's
+- Checkout met contact-/bezorggegevens, dynamische verzendopties, ordernotitie en akkoord met juridische pagina's
 - Nederlandse conceptpagina's voor algemene voorwaarden en privacy
 - VPS, standaardpoort 3031
 
@@ -16,20 +17,28 @@ Een eigen, minimalistische Next.js-webshop voor Bendemen. WooCommerce blijft de 
 ```bash
 npm install
 cp .env.example .env.local
-# Vul WooCommerce-, verzend- en Mollie-instellingen in
+# Vul WooCommerce- en Mollie-instellingen in
 npm run dev
-``
+```
 Open http://localhost:3031.
 
 ## Vereiste configuratie
 
-### WooCommerce
+### WooCommerce API
 1. Ga naar WooCommerce → Instellingen → Geavanceerd → REST API.
 2. Maak een REST API-sleutel met lees- en schrijfrechten aan.
 3. Vul `WOOCOMMERCE_URL`, `WOOCOMMERCE_CONSUMER_KEY` en `WOOCOMMERCE_CONSUMER_SECRET` in.
-4. Controleer dat producten gepubliceerd zijn, voorraad correct is ingesteld en btw-instellingen kloppen.
-5. Stel in WooCommerce de verzendzone en verzendmethode in. Deze eerste checkoutversie ondersteunt één vaste verzendmethode: zet `WOOCOMMERCE_SHIPPING_METHOD_ID`, `WOOCOMMERCE_SHIPPING_METHOD_TITLE` en `WOOCOMMERCE_SHIPPING_COST` gelijk aan die methode. De checkout weigert bestellingen zolang de kosten niet zijn ingesteld. Controleer in testorders of WooCommerce het juiste btw- en ordertotaal berekent.
-6. Gebruik `WOOCOMMERCE_URL=https://www.bendemen.com` als WooCommerce daar draait; de frontend staat los op bijvoorbeeld `https://test.bendemen.com`.
+4. Gebruik `WOOCOMMERCE_URL=https://www.bendemen.com` als WooCommerce daar draait; de frontend staat los op `https://test.bendemen.com`.
+5. Controleer dat producten gepubliceerd zijn, voorraad correct is ingesteld en btw-instellingen kloppen.
+
+### Verzendzones en dynamische tarieven
+1. Upload de map `wordpress-plugin/bendemen-shipping-rates` naar `wp-content/plugins/` van de WordPress/WooCommerce-installatie. De pluginmap moet dus worden `wp-content/plugins/bendemen-shipping-rates/`.
+2. Activeer **Bendemen Shipping Rates** in WordPress → Plugins.
+3. De plugin biedt intern het beveiligde endpoint `/wp-json/bendemen/v1/shipping-rates`. Het endpoint vereist WooCommerce REST API-authenticatie met een account dat `manage_woocommerce` mag uitvoeren. De API-sleutel blijft uitsluitend op de Next.js-server.
+4. Stel de verzendzones in via WooCommerce → Instellingen → Verzending. Configureer per zone de verzendmethoden en tarieven zoals je die wilt aanbieden.
+5. De checkout vraagt de tarieven op voor het ingevulde Nederlandse adres en de huidige winkelwagen. WooCommerce bepaalt de passende zone en voert de berekening uit met de ingeschakelde verzendmethoden. De getoonde tarieven worden bij het plaatsen van de bestelling opnieuw server-side berekend; een bedrag uit de browser wordt niet vertrouwd.
+6. Controleer elke verzendmethode die je gebruikt, inclusief eventuele externe vervoerdersplugins. Een methode die extra accountgegevens, sessiegegevens of een eigen checkout vereist, kan aanvullende integratie nodig hebben.
+7. Deze checkout ondersteunt op dit moment Nederlandse bezorgadressen (`NL`). Andere landen vereisen uitbreiding van het landveld en de adresvalidatie in de checkout en API.
 
 ### Mollie
 1. Vul eerst een Mollie-test-API-sleutel in als `MOLLIE_API_KEY`.
@@ -46,21 +55,22 @@ De pagina's `/voorwaarden` en `/privacy` zijn **concepten**. Vul de juridische b
 npm install
 npm run build
 npm run start
-``
+```
 De app luistert op poort 3031. Configureer Nginx/Nginx Proxy Manager met HTTPS en proxy naar `127.0.0.1:3031`. Voor PM2:
 ```bash
 pm2 start npm --name bendemen-headless-shop -- start
 pm2 save
 pm2 startup
-``
+```
 
 ## Belangrijke grenzen vóór productie
-- De verzendmethode is momenteel één vaste rate; meerdere verzendzones, gratis verzending vanaf een drempel, afhalen en gewichts-/landafhankelijke tarieven vereisen extra checkoutlogica.
+- WooCommerce blijft de bron van waarheid voor zones en tarieven. Test verschillende postcodes, alle actieve zones, gratis-verzenddrempels, lokale afhaalopties, btw en eventuele vervoerdersplugins.
+- De PHP-plugin gebruikt de WooCommerce shipping engine. Installeer en activeer de plugin op de WooCommerce-site; alleen de Next.js-deploy is niet voldoende.
+- Controleer dat de WooCommerce REST API-sleutel hoort bij een gebruiker met `manage_woocommerce`-rechten, zodat het tariefendpoint is toegestaan.
 - Controleer de berekening van btw, verzending, kortingen en variatieprijzen met echte WooCommerce-testorders.
 - Kortingscodes, klantaccounts en orderbevestigingsmails vanuit de eigen frontend zijn nog niet apart uitgewerkt; WooCommerce e-mailinstellingen blijven van toepassing.
 - Er is geen VPS-deployment of DNS-wijziging doorgevoerd. Test build, API-sleutels, Mollie-webhook en de volledige bestelcyclus in een testomgeving voordat je de shop live zet.
 - Zet nooit API-sleutels in Git of in variabelen met de prefix `NEXT_PUBLIC_`.
-
 
 ## Huisstijl en tijdelijk domein
 - Achtergrond: wit (`#FFFFFF`).
