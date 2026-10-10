@@ -45,6 +45,13 @@ export default function AccountClient() {
       <p className="account-email">{points.user.email}</p>
       <div className="points-balance"><strong>{points.balance}</strong><span>{points.label || "punten"}</span></div>
       <p>Je puntensaldo wordt beheerd door WooCommerce Points &amp; Rewards.</p>
+      {refundNotice && <p className="account-notice" role="alert">{refundNotice}</p>}
+      <div className="refund-account-panel">
+        <span className="eyebrow">BESTELLINGEN &amp; RETOUREN</span>
+        <h3>Een terugbetaling aanvragen?</h3>
+        <p>Bekijk je bestellingen en dien een verzoek in via het beveiligde terugbetalingssysteem. De voorwaarden en status worden door YITH beheerd.</p>
+        <Link className="button" href="/api/account/refunds/access">Mijn bestellingen &amp; terugbetalingen ↗</Link>
+      </div>
       <div className="account-actions"><Link className="button" href="/shop">Verder winkelen ↗</Link><button className="text-button" type="button" onClick={() => void logout()}>Uitloggen</button></div>
     </> : <>
       <span className="eyebrow">MIJN BENDEMEN</span>
