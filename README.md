@@ -29,11 +29,11 @@ Open http://localhost:3031.
 3. Vul `WOOCOMMERCE_URL`, `WOOCOMMERCE_CONSUMER_KEY` en `WOOCOMMERCE_CONSUMER_SECRET` in.
 4. Controleer dat producten gepubliceerd zijn, voorraad correct is ingesteld en btw-instellingen kloppen.
 5. Stel in WooCommerce de verzendzone en verzendmethode in. Deze eerste checkoutversie ondersteunt één vaste verzendmethode: zet `WOOCOMMERCE_SHIPPING_METHOD_ID`, `WOOCOMMERCE_SHIPPING_METHOD_TITLE` en `WOOCOMMERCE_SHIPPING_COST` gelijk aan die methode. De checkout weigert bestellingen zolang de kosten niet zijn ingesteld. Controleer in testorders of WooCommerce het juiste btw- en ordertotaal berekent.
-6. Gebruik `WOOCOMMERCE_URL=https://www.bendemen.com` als WooCommerce daar draait; de frontend staat los op bijvoorbeeld `https://shop.bendemen.com`.
+6. Gebruik `WOOCOMMERCE_URL=https://www.bendemen.com` als WooCommerce daar draait; de frontend staat los op bijvoorbeeld `https://test.bendemen.com`.
 
 ### Mollie
 1. Vul eerst een Mollie-test-API-sleutel in als `MOLLIE_API_KEY`.
-2. Stel `MOLLIE_WEBHOOK_URL` in op een publiek bereikbare HTTPS-URL: `https://shop.bendemen.com/api/mollie/webhook`.
+2. Stel `MOLLIE_WEBHOOK_URL` in op een publiek bereikbare HTTPS-URL: `https://test.bendemen.com/api/mollie/webhook`.
 3. Mollie maakt de betaling aan op basis van het door WooCommerce geretourneerde ordertotaal. De klant wordt doorgestuurd naar Mollie's gehoste checkout.
 4. De webhook haalt de actuele betaalstatus bij Mollie op en markeert de WooCommerce-order pas als betaald nadat Mollie `paid` bevestigt. De terugkeerpagina alleen geldt niet als betaalbewijs.
 5. Test betaalde, geannuleerde, verlopen en mislukte betalingen vóór livegang. Wissel daarna pas naar een live API-sleutel.
@@ -61,3 +61,10 @@ pm2 startup
 - Er is geen VPS-deployment of DNS-wijziging doorgevoerd. Test build, API-sleutels, Mollie-webhook en de volledige bestelcyclus in een testomgeving voordat je de shop live zet.
 - Zet nooit API-sleutels in Git of in variabelen met de prefix `NEXT_PUBLIC_`.
 
+
+## Huisstijl en tijdelijk domein
+- Achtergrond: wit (`#FFFFFF`).
+- Hoofdkleur: zwart (`#000000`).
+- Accentkleur: rood (`#C3110C`).
+- Tijdelijk frontend-domein: `https://test.bendemen.com`.
+- Zet dezelfde URL in `NEXT_PUBLIC_SITE_URL` en gebruik `https://test.bendemen.com/api/mollie/webhook` als `MOLLIE_WEBHOOK_URL`.
