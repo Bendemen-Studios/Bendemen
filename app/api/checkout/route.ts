@@ -3,10 +3,12 @@ import { getProduct, getProductVariations, wooFetch, type WooProduct, type WooVa
 import { getShippingRates, type ShippingItem } from "@/lib/shipping";
 import { createMolliePayment } from "@/lib/mollie";
 import { getSession } from "@/lib/auth";
+import { accountBridge } from "@/lib/account-bridge";
 
 export const runtime = "nodejs";
 type WooOrder = { id: number; number: string; order_key: string; total: string; currency: string };
 type CheckoutItem = { productId: number; variationId?: number; quantity: number };
+type PointsQuote = { balance: number; maxPoints: number; points: number; discount: string };
 
 const emailOk = (v: unknown): v is string =>
   typeof v === "string" && v.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
@@ -18,6 +20,13 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const session = await getSession();
     const items: CheckoutItem[] = body.items;
+    const requestedPoints = body.pointsToRedeem == null ? 0 : body.pointsToRedeem;
+    if (!Number.isSafeInteger(requestedPoints) || requestedPoints < 0 || requestedPoints > 100000000) {
+      return NextResponse.json({ error: "Het aantal in te wisselen punten is ongeldig." }, { status: 400 });
+    }
+    if (requestedPoints > 0 && !session) {
+      return NextResponse.json({ error: "Log in om punten in te wisselen." }, { status: 401 });
+    }
     const required = ["firstName", "lastName", "address", "postcode", "city"];
     if (!Array.isArray(items) || items.length < 1 || items.length > 30 ||
         !emailOk(body.email) || body.acceptedTerms !== true || required.some((field) => !textField(body[field])) ||
@@ -85,6 +94,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Deze verzendoptie is niet meer beschikbaar. Haal de verzendopties opnieuw op." }, { status: 409 });
     }
 
+    let pointsQuote: PointsQuote | null = null;
+    if (requestedPoints > 0 && session) {
+      pointsQuote = await accountBridge<PointsQuote>("points/quote", {
+        method: "POST",
+        body: JSON.stringify({
+          user_id: session.id, items: items.map((item) => ({ productId: item.productId, quantity: item.quantity, ...(item.variationId ? { variationId: item.variationId } : {}) })),
+          destination: { country: "NL", address_1: address, postcode, city }, points: requestedPoints,
+        }),
+      });
+      if (!pointsQuote.points || Number(pointsQuote.discount) <= 0 || pointsQuote.points > requestedPoints) {
+        return NextResponse.json({ error: "Er kan geen geldige puntenkorting worden toegepast. Bereken de korting opnieuw." }, { status: 409 });
+      }
+    }
+
     const order = await wooFetch<WooOrder>("orders", {
       method: "POST",
       body: JSON.stringify({
@@ -101,16 +124,32 @@ export async function POST(req: NextRequest) {
           total: Number(selectedRate.cost).toFixed(2),
           taxes: selectedRate.taxes.map((tax) => ({ id: tax.id, total: Number(tax.total).toFixed(2) })),
         }],
+        ...(pointsQuote ? { fee_lines: [{ name: "Puntenkorting", total: (-Number(pointsQuote.discount)).toFixed(2), tax_status: "none" }] } : {}),
         customer_note: typeof body.note === "string" ? body.note.trim().slice(0, 500) : "",
         meta_data: [
           { key: "bendemen_headless_source", value: "bendemen-headless-shop" },
           { key: "bendemen_shipping_rate_id", value: selectedRate.id },
+          ...(pointsQuote ? [{ key: "_bendemen_points_discount", value: Number(pointsQuote.discount).toFixed(2) }] : []),
         ],
       }),
     });
     if (order.currency !== "EUR") throw new Error("WooCommerce store currency must be EUR for Mollie checkout");
     if (!Number.isFinite(Number(order.total)) || Number(order.total) <= 0) {
       throw new Error("WooCommerce returned an invalid order total; check taxes and shipping configuration");
+    }
+
+    if (pointsQuote && session) {
+      try {
+        await accountBridge<{ ok: boolean; points: number }>("points/redeem", {
+          method: "POST",
+          body: JSON.stringify({ user_id: session.id, order_id: order.id, points: pointsQuote.points, discount: pointsQuote.discount }),
+        });
+      } catch (error) {
+        await wooFetch("orders/" + order.id, {
+          method: "PUT", body: JSON.stringify({ status: "failed", customer_note: "Punteninwisseling kon niet worden afgerond." }),
+        }).catch(() => undefined);
+        throw error;
+      }
     }
 
     try {
