@@ -164,8 +164,8 @@ function bendemen_bridge_quote_points(WP_REST_Request $request) {
         if ($discount <= 0 || $points_used < 1) {
             return new WP_Error('bendemen_points_no_discount', 'Er kan voor deze bestelling geen puntenkorting worden toegepast.', ['status' => 400]);
         }
-        if ('yes' !== get_option('wc_points_rewards_partial_redemption_enabled') && $points_used !== $max_points) {
-            return new WP_Error('bendemen_partial_disabled', 'Gedeeltelijk punten inwisselen is uitgeschakeld in WooCommerce Points & Rewards.', ['status' => 400]);
+        if ('yes' !== get_option('wc_points_rewards_partial_redemption_enabled') && $requested_points < $max_points) {
+            return new WP_Error('bendemen_partial_disabled', 'Gedeeltelijk punten inwisselen is uitgeschakeld in WooCommerce Points & Rewards. Kies maximaal ' . $max_points . ' punten.', ['status' => 400]);
         }
         return rest_ensure_response([
             'balance' => $balance, 'maxPoints' => $max_points,
