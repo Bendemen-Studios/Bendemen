@@ -67,10 +67,10 @@ export default function CheckoutClient() {
       <section className="checkout-section">
         <h2>3. Controleren en betalen</h2>
         <label className="consent-row"><input type="checkbox" name="acceptedTerms" required /> <span>Ik heb de <Link href="/voorwaarden" target="_blank">algemene voorwaarden</Link> gelezen en het <Link href="/privacy" target="_blank">privacybeleid</Link> bekeken.</span></label>
-        <p className="secure-note">Je betaalt veilig via de beveiligde betaalomgeving van Mollie. Je definitieve totaalbedrag, inclusief btw en verzending, wordt door WooCommerce berekend voordat je naar Mollie gaat.</p>
+        <p className="secure-note">Je betaalt veilig via de beveiligde betaalomgeving van Mollie. WooCommerce berekent het definitieve totaal inclusief btw en verzending. Je ziet het bedrag op de Mollie-betaalpagina voordat je de betaling bevestigt.</p>
         {error && <p className="form-error" role="alert">{error}</p>}
         <button className="button checkout-submit" disabled={busy || !ready || !items.length}>
-          {busy ? "Bestelling voorbereiden…" : "Bestelling controleren en betalen →"}
+          {busy ? "Bestelling voorbereiden…" : "Bestelling plaatsen en naar Mollie →"}
         </button>
         <small>Je bestelling wordt pas als betaald gemarkeerd nadat Mollie de betaling server-side heeft bevestigd.</small>
       </section>
@@ -83,7 +83,7 @@ export default function CheckoutClient() {
           <strong>{money((Number(item.price) || 0) * item.quantity)}</strong>
         </div>)}
         <div className="checkout-total"><span>Indicatief subtotaal</span><strong>{money(subtotal)}</strong></div>
-        <p className="summary-disclaimer">Verzendkosten en btw kunnen afwijken. WooCommerce berekent het echte ordertotaal op basis van je producten en ingestelde verzendmethode.</p>
+        <p className="summary-disclaimer">Verzendkosten en btw kunnen afwijken. WooCommerce berekent het definitieve ordertotaal. Mollie toont het bedrag voordat je de betaling bevestigt.</p>
       </> : <div className="empty-checkout"><p>Je winkelwagen is leeg.</p><Link href="/shop">Bekijk de collectie →</Link></div>}
       <Link className="text-button" href="/winkelwagen">← Terug naar winkelwagen</Link>
     </aside>
