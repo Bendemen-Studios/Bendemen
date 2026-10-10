@@ -45,56 +45,53 @@ function bendemen_get_shipping_rates(WP_REST_Request $request) {
         return new WP_Error('invalid_destination', 'Vul een geldig Nederlands bezorgadres in.', ['status' => 400]);
     }
 
-    $contents = [];
-    $contents_cost = 0.0;
-    foreach ($items as $index => $item) {
-        $product_id = isset($item['productId']) ? absint($item['productId']) : 0;
-        $variation_id = isset($item['variationId']) ? absint($item['variationId']) : 0;
-        $quantity = isset($item['quantity']) ? absint($item['quantity']) : 0;
-        $product = wc_get_product($variation_id ?: $product_id);
-
-        if (!$product || !$product->exists() || !$product->is_purchasable() || $quantity < 1 || $quantity > 99) {
-            return new WP_Error('invalid_product', 'Een product is niet beschikbaar voor verzending.', ['status' => 400]);
+    try {
+        // Use a real WooCommerce cart so extensions such as Octolize can evaluate
+        // cart contents, product categories, shipping classes, weight and totals.
+        if (!WC()->cart && function_exists('wc_load_cart')) {
+            wc_load_cart();
+        }
+        if (!WC()->cart || !WC()->customer) {
+            return new WP_Error('shipping_unavailable', 'WooCommerce cart is unavailable.', ['status' => 503]);
         }
 
-        $line_total = (float) $product->get_price() * $quantity;
-        $key = (string) $index;
-        $contents[$key] = [
-            'key' => $key,
-            'product_id' => $product_id,
-            'variation_id' => $variation_id,
-            'variation' => [],
-            'quantity' => $quantity,
-            'data' => $product,
-            'line_total' => $line_total,
-            'line_tax' => 0,
-            'line_subtotal' => $line_total,
-            'line_subtotal_tax' => 0,
-            'line_tax_data' => ['total' => [], 'subtotal' => []],
-        ];
-        $contents_cost += $line_total;
-    }
+        WC()->cart->empty_cart(true);
+        WC()->customer->set_shipping_country($country);
+        WC()->customer->set_shipping_state('');
+        WC()->customer->set_shipping_postcode($postcode);
+        WC()->customer->set_shipping_city($city);
+        WC()->customer->set_shipping_address($address);
+        WC()->customer->set_shipping_address_2('');
 
-    $package = [
-        'contents' => $contents,
-        'contents_cost' => $contents_cost,
-        'applied_coupons' => [],
-        'user' => ['ID' => get_current_user_id()],
-        'destination' => [
-            'country' => $country,
-            'state' => '',
-            'postcode' => $postcode,
-            'city' => $city,
-            'address' => $address,
-            'address_2' => '',
-        ],
-        'cart_subtotal' => $contents_cost,
-    ];
+        foreach ($items as $item) {
+            $product_id = isset($item['productId']) ? absint($item['productId']) : 0;
+            $variation_id = isset($item['variationId']) ? absint($item['variationId']) : 0;
+            $quantity = isset($item['quantity']) ? absint($item['quantity']) : 0;
+            $product = wc_get_product($variation_id ?: $product_id);
 
-    try {
+            if (!$product || !$product->exists() || !$product->is_purchasable() || $quantity < 1 || $quantity > 99) {
+                WC()->cart->empty_cart(true);
+                return new WP_Error('invalid_product', 'Een product is niet beschikbaar voor verzending.', ['status' => 400]);
+            }
+
+            $cart_key = WC()->cart->add_to_cart(
+                $product_id,
+                $quantity,
+                $variation_id,
+                isset($item['variation']) && is_array($item['variation']) ? $item['variation'] : []
+            );
+
+            if (!$cart_key) {
+                WC()->cart->empty_cart(true);
+                return new WP_Error('invalid_product', 'Een product kon niet aan de verzendberekening worden toegevoegd.', ['status' => 400]);
+            }
+        }
+
+        WC()->cart->calculate_totals();
         WC()->shipping()->reset_shipping();
-        $packages = WC()->shipping()->calculate_shipping([$package]);
+        $packages = WC()->shipping()->calculate_shipping(WC()->cart->get_shipping_packages());
         $rates = isset($packages[0]['rates']) && is_array($packages[0]['rates']) ? $packages[0]['rates'] : [];
+
         $result = [];
 
         foreach ($rates as $rate) {
