@@ -68,7 +68,7 @@ pm2 startup
 - De PHP-plugin gebruikt de WooCommerce shipping engine. Installeer en activeer de plugin op de WooCommerce-site; alleen de Next.js-deploy is niet voldoende.
 - Controleer dat de WooCommerce REST API-sleutel hoort bij een gebruiker met `manage_woocommerce`-rechten, zodat het tariefendpoint is toegestaan.
 - Controleer de berekening van btw, verzending, kortingen en variatieprijzen met echte WooCommerce-testorders.
-- De headless accountpagina biedt registratie, login en weergave van het WooCommerce Points & Rewards-saldo. Orders van ingelogde klanten worden aan hun WooCommerce-account gekoppeld; de puntenplugin blijft verantwoordelijk voor het toekennen van verdiende punten. De aparte punten-inwisselkorting moet nog worden geïntegreerd en getest.
+- De headless accountpagina biedt registratie, login en weergave van het WooCommerce Points & Rewards-saldo. Ingelogde klanten kunnen bij checkout een puntenkorting berekenen; de server berekent deze opnieuw via de cart engine van de plugin en schrijft de inwisseling via de officiële puntenmanager weg. Test de volledige flow met je daadwerkelijke product- en categoriebeperkingen voordat je live gaat.
 - Er is geen VPS-deployment of DNS-wijziging doorgevoerd. Test build, API-sleutels, Mollie-webhook en de volledige bestelcyclus in een testomgeving voordat je de shop live zet.
 - Zet nooit API-sleutels in Git of in variabelen met de prefix `NEXT_PUBLIC_`.
 
@@ -89,4 +89,4 @@ De frontend bevat `/account` voor registratie, inloggen, uitloggen en het actuel
 4. Zorg dat WooCommerce en de officiële WooCommerce Points & Rewards-plugin actief zijn. Het bestaande saldo wordt niet overschreven of opnieuw aangemaakt.
 5. Test registratie, inloggen, saldo ophalen en een betaalde bestelling op `test.bendemen.com`.
 
-Let op: het inwisselen van punten als korting bij de headless checkout is nog niet actief. Dit moet aansluiten op de ingestelde product-/categoriebeperkingen en de kortingsregels van de Points & Rewards-plugin; de frontend rekent daarvoor nog geen korting aan.
+De kortingsberekening gebruikt de cart engine van Points & Rewards, inclusief de geconfigureerde product-/categoriebeperkingen en kortingslimieten. Test met verschillende producten en puntenstanden voordat je dit live gebruikt.
