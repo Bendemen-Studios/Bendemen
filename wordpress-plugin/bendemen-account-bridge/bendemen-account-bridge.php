@@ -33,6 +33,14 @@ add_action('rest_api_init', function () {
         'methods' => 'POST', 'callback' => 'bendemen_bridge_create_refund_access',
         'permission_callback' => 'bendemen_bridge_authorized',
     ]);
+    register_rest_route('bendemen/v1', '/account/orders/(?P<user_id>\\d+)', [
+        'methods' => 'GET', 'callback' => 'bendemen_bridge_account_orders',
+        'permission_callback' => 'bendemen_bridge_authorized',
+    ]);
+    register_rest_route('bendemen/v1', '/account/orders/invoice-token', [
+        'methods' => 'POST', 'callback' => 'bendemen_bridge_create_invoice_access',
+        'permission_callback' => 'bendemen_bridge_authorized',
+    ]);
 });
 
 function bendemen_bridge_authorized($request) {
@@ -312,5 +320,111 @@ add_action('template_redirect', function () {
     nocache_headers();
     $target = function_exists('wc_get_account_endpoint_url') ? wc_get_account_endpoint_url('orders') : wc_get_page_permalink('myaccount');
     wp_safe_redirect($target);
+    exit;
+}, 1);
+
+
+/** Return the customer's own orders, using WooCommerce's filtered display number. */
+function bendemen_bridge_account_orders(WP_REST_Request $request) {
+    $user_id = absint($request['user_id']);
+    $user = get_user_by('id', $user_id);
+    if (!$user || !in_array('customer', (array) $user->roles, true)) {
+        return new WP_Error('bendemen_orders_customer_required', 'Log in met een klantaccount om bestellingen te bekijken.', ['status' => 403]);
+    }
+    if (!function_exists('wc_get_orders')) {
+        return new WP_Error('bendemen_orders_unavailable', 'WooCommerce is niet beschikbaar.', ['status' => 503]);
+    }
+    $orders = wc_get_orders([
+        'customer_id' => $user_id,
+        'limit' => 25,
+        'orderby' => 'date',
+        'order' => 'DESC',
+        'return' => 'objects',
+    ]);
+    $result = [];
+    foreach ($orders as $order) {
+        if (!$order instanceof WC_Order) continue;
+        $created = $order->get_date_created();
+        $status = $order->get_status();
+        $result[] = [
+            'id' => (int) $order->get_id(),
+            'number' => (string) $order->get_order_number(),
+            'date' => $created ? $created->date(DATE_ATOM) : '',
+            'status' => (string) wc_get_order_status_name($status),
+            'statusKey' => (string) $status,
+            'total' => (string) $order->get_total(),
+            'currency' => (string) $order->get_currency(),
+            'invoiceAvailable' => in_array($status, ['processing', 'completed', 'refunded'], true),
+        ];
+    }
+    return rest_ensure_response(['orders' => $result]);
+}
+
+/** Create a one-time token for a PDF invoice belonging to this customer. */
+function bendemen_bridge_create_invoice_access(WP_REST_Request $request) {
+    $user_id = absint($request->get_param('user_id'));
+    $order_id = absint($request->get_param('order_id'));
+    $user = get_user_by('id', $user_id);
+    $order = function_exists('wc_get_order') ? wc_get_order($order_id) : false;
+    if (!$user || !in_array('customer', (array) $user->roles, true) || !$order || (int) $order->get_customer_id() !== $user_id) {
+        return new WP_Error('bendemen_invoice_order_forbidden', 'Deze bestelling hoort niet bij dit account.', ['status' => 403]);
+    }
+    if (!in_array($order->get_status(), ['processing', 'completed', 'refunded'], true)) {
+        return new WP_Error('bendemen_invoice_order_unpaid', 'De factuur is beschikbaar zodra de bestelling is betaald en verwerkt.', ['status' => 409]);
+    }
+    if (!bendemen_bridge_pdf_invoices_active()) {
+        return new WP_Error('bendemen_invoice_plugin_missing', 'Activeer PDF Invoices & Packing Slips for WooCommerce.', ['status' => 503]);
+    }
+    $token = bin2hex(random_bytes(32));
+    $key = 'bendemen_invoice_access_' . hash('sha256', $token);
+    set_transient($key, ['user_id' => $user_id, 'order_id' => $order_id], 90);
+    $url = add_query_arg('bendemen_invoice_access', $token, home_url('/'));
+    return rest_ensure_response(['url' => esc_url_raw($url)]);
+}
+
+/** Detect the WP Overnight PDF Invoices & Packing Slips plugin, including network activation. */
+function bendemen_bridge_pdf_invoices_active() {
+    if (function_exists('wpo_wcpdf_get_document') || class_exists('WPO\\\\WC\\\\PDF_Invoices\\\\Main')) return true;
+    $plugins = (array) get_option('active_plugins', []);
+    $network_plugins = array_keys((array) get_site_option('active_sitewide_plugins', []));
+    foreach (array_merge($plugins, $network_plugins) as $plugin) {
+        if (strpos((string) $plugin, 'woocommerce-pdf-invoices-packing-slips') !== false) return true;
+    }
+    return false;
+}
+
+/** Consume a one-time invoice token, authenticate the owner, and let the PDF plugin generate the PDF. */
+add_action('template_redirect', function () {
+    if (!isset($_GET['bendemen_invoice_access'])) return;
+    $token = sanitize_text_field(wp_unslash($_GET['bendemen_invoice_access']));
+    if (!preg_match('/^[a-f0-9]{64}$/', $token)) {
+        nocache_headers();
+        wp_safe_redirect(wc_get_page_permalink('myaccount'));
+        exit;
+    }
+    $key = 'bendemen_invoice_access_' . hash('sha256', $token);
+    $payload = get_transient($key);
+    delete_transient($key);
+    $user_id = is_array($payload) ? absint($payload['user_id'] ?? 0) : 0;
+    $order_id = is_array($payload) ? absint($payload['order_id'] ?? 0) : 0;
+    $user = $user_id ? get_user_by('id', $user_id) : false;
+    $order = $order_id && function_exists('wc_get_order') ? wc_get_order($order_id) : false;
+    if (!$user || !in_array('customer', (array) $user->roles, true) || !$order ||
+        (int) $order->get_customer_id() !== $user_id ||
+        !in_array($order->get_status(), ['processing', 'completed', 'refunded'], true) ||
+        !bendemen_bridge_pdf_invoices_active()) {
+        nocache_headers();
+        wp_safe_redirect(wc_get_page_permalink('myaccount'));
+        exit;
+    }
+    wp_set_current_user($user_id);
+    wp_set_auth_cookie($user_id, true, is_ssl());
+    do_action('wp_login', $user->user_login, $user);
+    nocache_headers();
+    $pdf_url = wp_nonce_url(
+        admin_url('admin-ajax.php?action=generate_wpo_wcpdf&template_type=invoice&order_ids=' . $order_id . '&my-account'),
+        'generate_wpo_wcpdf'
+    );
+    wp_safe_redirect($pdf_url);
     exit;
 }, 1);
