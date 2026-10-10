@@ -3,7 +3,7 @@ import { getProduct, getProductVariations, wooFetch, type WooProduct, type WooVa
 import { createMolliePayment } from "@/lib/mollie";
 
 export const runtime = "nodejs";
-type WooOrder = { id: number; number: string; order_key: string; total: string };
+type WooOrder = { id: number; number: string; order_key: string; total: string; currency: string };
 type CheckoutItem = { productId: number; variationId?: number; quantity: number };
 
 const emailOk = (v: unknown): v is string =>
@@ -82,6 +82,7 @@ export async function POST(req: NextRequest) {
         meta_data: [{ key: "bendemen_headless_source", value: "bendemen-headless-shop" }],
       }),
     });
+    if (order.currency !== "EUR") throw new Error("WooCommerce store currency must be EUR for Mollie checkout");
     if (!Number.isFinite(Number(order.total)) || Number(order.total) <= 0) {
       throw new Error("WooCommerce returned an invalid order total; check taxes and shipping configuration");
     }
