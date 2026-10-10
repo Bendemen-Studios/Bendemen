@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { formatPrice, type WooProduct } from "@/lib/woocommerce";
+type WooProduct = { id: number; name: string; short_description: string; categories: { id: number; name: string }[]; images: { src: string; alt?: string }[]; stock_status: string; type: string; price: string; regular_price: string };
+const formatPrice = (value: string | number) => { const amount = Number(value); return Number.isFinite(amount) ? new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(amount) : "Prijs op aanvraag"; };
 
 export default function ShopClient({ products }: { products: WooProduct[] }) {
   const [query, setQuery] = useState("");
