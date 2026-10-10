@@ -43,7 +43,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
         </p>
         <ProductActions
           product={{ id: product.id, name: product.name, price: price || "0", image: product.images?.[0]?.src || "", type: product.type }}
-          disabled={!product.purchasable || (product.type !== "variable" && product.stock_status === "outofstock")}
+          disabled={product.type !== "variable" && (!product.purchasable || product.stock_status === "outofstock")}
           attributes={product.attributes || []}
           variations={variations}
         />
