@@ -12,7 +12,6 @@ const textField = (v: unknown, max = 150): v is string =>
   typeof v === "string" && v.trim().length > 0 && v.trim().length <= max;
 
 export async function POST(req: NextRequest) {
-  let createdOrderId: number | undefined;
   try {
     const body = await req.json();
     const items: CheckoutItem[] = body.items;
@@ -37,7 +36,7 @@ export async function POST(req: NextRequest) {
     const line_items: { product_id: number; variation_id?: number; quantity: number }[] = [];
     for (const item of items) {
       const product: WooProduct = await getProduct(item.productId);
-      if (product.status !== "publish" || !product.purchasable || product.stock_status === "outofstock") {
+      if (product.status !== "publish" || (product.type !== "variable" && (!product.purchasable || product.stock_status === "outofstock"))) {
         return NextResponse.json({ error: product.name + " is niet beschikbaar." }, { status: 409 });
       }
       if (product.type === "variable") {
@@ -83,7 +82,6 @@ export async function POST(req: NextRequest) {
         meta_data: [{ key: "_bendemen_headless_source", value: "bendemen-headless-shop" }],
       }),
     });
-    createdOrderId = order.id;
     if (!Number.isFinite(Number(order.total)) || Number(order.total) <= 0) {
       throw new Error("WooCommerce returned an invalid order total; check taxes and shipping configuration");
     }
