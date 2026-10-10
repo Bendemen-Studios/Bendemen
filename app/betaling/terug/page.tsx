@@ -19,7 +19,7 @@ export default async function PaymentReturn({ searchParams }: { searchParams: Pr
       const candidate = await wooFetch<WooOrder>("orders/" + Number(params.order));
       if (candidate.order_key === params.key) {
         order = candidate;
-        const paymentId = candidate.meta_data?.find((item) => item.key === "_bendemen_mollie_payment_id")?.value;
+        const paymentId = candidate.meta_data?.find((item) => item.key === "bendemen_mollie_payment_id")?.value;
         if (typeof paymentId === "string" && /^tr_[A-Za-z0-9]+$/.test(paymentId)) {
           try { paymentStatus = (await getMolliePayment(paymentId)).status; } catch { paymentStatus = ""; }
         }
