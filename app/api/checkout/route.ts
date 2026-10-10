@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
     const items: CheckoutItem[] = body.items;
     const required = ["firstName", "lastName", "address", "postcode", "city"];
     if (!Array.isArray(items) || items.length < 1 || items.length > 30 ||
-        !emailOk(body.email) || required.some((field) => !textField(body[field])) ||
+        !emailOk(body.email) || body.acceptedTerms !== true || required.some((field) => !textField(body[field])) ||
         (body.phone != null && (typeof body.phone !== "string" || body.phone.length > 40))) {
       return NextResponse.json({ error: "Controleer je winkelwagen en alle verplichte gegevens." }, { status: 400 });
     }
