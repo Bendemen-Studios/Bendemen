@@ -1,4 +1,4 @@
-type Payment={id:string;status:string;_links?:{checkout?:{href:string}};metadata?:{woo_order_id?:number;woo_order_key?:string}};
+type Payment={id:string;status:string;amount?:{currency:string;value:string};_links?:{checkout?:{href:string}};metadata?:{woo_order_id?:number;woo_order_key?:string}};
 export async function createMolliePayment(input:{amount:string;description:string;orderId:number;orderKey:string;email:string}){
  const key=process.env.MOLLIE_API_KEY,site=process.env.NEXT_PUBLIC_SITE_URL,webhookUrl=process.env.MOLLIE_WEBHOOK_URL;
  if(!key||key.includes("replace_me")||!site||!webhookUrl)throw new Error("Mollie is not configured");
