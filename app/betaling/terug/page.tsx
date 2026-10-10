@@ -1,0 +1,2 @@
+import Link from "next/link";
+export default function PaymentReturn(){return <main className="status-card"><Link className="wordmark" href="/">BENDEMEN<span>®</span></Link><h1>Bedankt voor je bestelling.</h1><p>Je bent teruggekeerd van de betaalpagina. Mollie bevestigt de betaling automatisch aan WooCommerce; de orderstatus wordt bijgewerkt zodra de serverbevestiging binnen is.</p><Link className="button" href="/shop">Verder winkelen ↗</Link></main>}
