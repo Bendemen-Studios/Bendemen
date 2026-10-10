@@ -26,7 +26,10 @@ export async function POST(req: NextRequest) {
     return response;
   } catch (error) {
     const message = error instanceof Error ? error.message : "Inloggen is niet gelukt.";
-    return NextResponse.json({ error: message }, { status: message.includes("bestaat al") ? 409 : 502 });
+    const status = message.includes("bestaat al") ? 409 :
+      (message.includes("E-mailadres of wachtwoord") ? 401 :
+      (message.includes("minimaal 12") || message.includes("Controleer") ? 400 : 502));
+    return NextResponse.json({ error: message }, { status });
   }
 }
 export async function DELETE() {
