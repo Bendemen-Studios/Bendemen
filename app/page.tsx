@@ -1,9 +1,9 @@
 import Link from "next/link";
 import {ArrowUpRight,ShieldCheck,PackageCheck,Heart} from "lucide-react";
-import {getProducts,formatPrice} from "@/lib/woocommerce";
+import {getProducts,formatPrice,type WooProduct} from "@/lib/woocommerce";
 export const dynamic="force-dynamic";
 export default async function Home(){
- let products=[];try{products=(await getProducts()).slice(0,4)}catch{}
+ let products: WooProduct[]=[];try{products=(await getProducts()).slice(0,4)}catch{}
  return <main><div className="announcement">EENVOUDIG GOED GEMAAKT · WELKOM BIJ BENDEMEN</div><header className="header wrap"><Link className="wordmark" href="/">BENDEMEN<span>®</span></Link><nav><Link href="/shop">Shop</Link><a href="#over">Ons verhaal</a></nav><Link className="under-link" href="/shop">Ontdek de collectie ↗</Link></header>
  <section className="hero wrap"><div><span className="eyebrow">DE BENDEMEN COLLECTIE</span><h1>Gemaakt om<br/>bij je <em>te passen.</em></h1><p>Doordachte producten. Een helder ontwerp. Geen overbodige franje. Ontdek de collectie van Bendemen.</p><Link className="button" href="/shop">Shop de collectie <ArrowUpRight size={16}/></Link><p>Een eigen merk, met aandacht voor detail.</p></div><div className="hero-visual"><div className="visual-shape"><span>B.</span></div><div className="visual-caption"><span>01 / BENDEMEN</span><span>EST. 2021</span></div></div></section>
  <section className="trust wrap"><div><ShieldCheck/><b>Veilig afrekenen</b><small>Betalen via Mollie</small></div><div><PackageCheck/><b>Duidelijke bestelling</b><small>Updates via WooCommerce</small></div><div><Heart/><b>Met aandacht gekozen</b><small>Ontdek onze collectie</small></div></section>
