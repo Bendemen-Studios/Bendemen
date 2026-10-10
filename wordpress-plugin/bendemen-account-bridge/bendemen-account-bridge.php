@@ -21,6 +21,14 @@ add_action('rest_api_init', function () {
         'permission_callback' => 'bendemen_bridge_authorized',
         'args' => ['user_id' => ['validate_callback' => function ($v) { return is_numeric($v) && (int) $v > 0; }]],
     ]);
+    register_rest_route('bendemen/v1', '/points/quote', [
+        'methods' => 'POST', 'callback' => 'bendemen_bridge_quote_points',
+        'permission_callback' => 'bendemen_bridge_authorized',
+    ]);
+    register_rest_route('bendemen/v1', '/points/redeem', [
+        'methods' => 'POST', 'callback' => 'bendemen_bridge_redeem_points',
+        'permission_callback' => 'bendemen_bridge_authorized',
+    ]);
 });
 
 function bendemen_bridge_authorized($request) {
