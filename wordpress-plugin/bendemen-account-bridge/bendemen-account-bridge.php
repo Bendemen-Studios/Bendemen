@@ -110,7 +110,7 @@ function bendemen_bridge_quote_points(WP_REST_Request $request) {
     }
     $previous_user = get_current_user_id();
     wp_set_current_user($user_id);
-    if (function_exists('wc_load_cart') && (!WC()->cart || !WC()->customer)) {
+    if (function_exists('wc_load_cart') && (!WC()->cart || !WC()->customer || !WC()->session)) {
         wc_load_cart();
     }
     if (!WC()->cart || !WC()->customer || !WC()->session) {
