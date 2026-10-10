@@ -105,3 +105,11 @@
 .points-balance span{font-size:13px;font-weight:600}
 .account-actions{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
 @media(max-width:760px){.account-form .form-row{grid-template-columns:1fr}}
+
+.points-redemption{display:grid;gap:10px;padding-top:18px;border-top:1px solid var(--line);margin-top:16px}
+.points-redemption h3{font:600 15px Manrope,sans-serif;letter-spacing:-.03em;margin:0}
+.points-redemption p,.points-redemption small{font-size:11px;line-height:1.7;color:var(--muted);margin:0}
+.points-redemption label{max-width:300px}
+.points-redemption input[type=number]{max-width:160px}
+.points-quote-result{background:#eeefe9;padding:12px}
+.points-quote-result strong{color:var(--accent)}
