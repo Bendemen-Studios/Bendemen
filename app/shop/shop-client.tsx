@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import WishlistButton from "@/components/wishlist-button";
 type WooProduct = { id: number; name: string; short_description: string; categories: { id: number; name: string }[]; images: { src: string; alt?: string }[]; stock_status: string; type: string; price: string; regular_price: string };
 const formatPrice = (value: string | number) => { const amount = Number(value); return Number.isFinite(amount) ? new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(amount) : "Prijs op aanvraag"; };
 
@@ -49,13 +50,16 @@ export default function ShopClient({ products }: { products: WooProduct[] }) {
     </div>
     <p className="shop-result-count">{visible.length} {visible.length === 1 ? "product" : "producten"}</p>
     {visible.length ? <div className="product-grid">{visible.map((product) =>
-      <Link className="product-card" href={"/product/" + product.id} key={product.id}>
-        <div className="product-image">
-          {product.images?.[0]?.src ? <Image src={product.images[0].src} alt={product.images[0].alt || product.name} fill sizes="(max-width: 760px) 50vw, (max-width: 1180px) 25vw, 280px" /> : <div className="image-placeholder">B.</div>}
-          {product.stock_status === "outofstock" && <span className="stock-label">Uitverkocht</span>}
-        </div>
-        <div className="product-meta"><div><h3>{product.name}</h3><p>{product.categories?.[0]?.name || "BENDEMEN"}</p></div><strong>{product.type === "variable" && !product.price ? "Vanaf " : ""}{formatPrice(product.price || product.regular_price)}</strong></div>
-      </Link>
+      <article className="product-card-wrap" key={product.id}>
+        <Link className="product-card" href={"/shop/" + (("slug" in product && product.slug) || product.id) + "/"}>
+          <div className="product-image">
+            {product.images?.[0]?.src ? <Image src={product.images[0].src} alt={product.images[0].alt || product.name} fill sizes="(max-width: 760px) 50vw, (max-width: 1180px) 25vw, 280px" /> : <div className="image-placeholder">B.</div>}
+            {product.stock_status === "outofstock" && <span className="stock-label">Uitverkocht</span>}
+          </div>
+          <div className="product-meta"><div><h3>{product.name}</h3><p>{product.categories?.[0]?.name || "BENDEMEN"}</p></div><strong>{product.type === "variable" && !product.price ? "Vanaf " : ""}{formatPrice(product.price || product.regular_price)}</strong></div>
+        </Link>
+        <WishlistButton productId={product.id} productName={product.name}/>
+      </article>
     )}</div> : <div className="empty-products"><h3>Geen producten gevonden.</h3><p>Pas je zoekopdracht of filters aan.</p><button className="button" onClick={() => { setQuery(""); setCategory("all"); setSort("featured"); }}>Wis filters</button></div>}
   </>;
 }
