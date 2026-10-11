@@ -50,7 +50,7 @@ export function SiteFooter() {
           <p>Bendemen staat voor streetwear met karakter. Premium kwaliteit en gemaakt voor iedereen die zichzelf blijft.</p>
           <a href="https://nl.trustpilot.com/review/bendemen.nl" target="_blank" rel="noreferrer">Bekijk alle reviews ↗</a>
         </div>
-        <div><h2>Informatie</h2><Link href="/voorwaarden">Algemene voorwaarden</Link><Link href="/privacy">Privacyverklaring</Link><Link href="/retour-beleid/">Retourbeleid</Link><Link href="/levering-betaling-beleid/">Levering &amp; betaling</Link><Link href="/disclaimer/">Disclaimer</Link></div>
+        <div><h2>Informatie</h2><Link href="/terms-and-conditions/">Algemene voorwaarden</Link><Link href="/privacyverklaring-eu/">Privacyverklaring</Link><Link href="/retour-beleid/">Retourbeleid</Link><Link href="/levering-betaling-beleid/">Levering &amp; betaling</Link><Link href="/disclaimer/">Disclaimer</Link></div>
         <div><h2>Links</h2><a href="https://status.bendemen.com/" target="_blank" rel="noreferrer">Storingen</a><Link href="/goede-doelen/">Goede doelen</Link><Link href="/blog/">Blog</Link><Link href="/contact/">Contact</Link></div>
         <div><h2>Contact</h2><p>Forel 2c<br />3225 PA Hellevoetsluis</p><a href="mailto:info@bendemen.nl">info@bendemen.nl</a></div>
       </div>
