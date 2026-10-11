@@ -206,3 +206,64 @@
 .wp-footer-bottom{min-height:54px;display:flex;justify-content:space-between;align-items:center;gap:18px;padding:12px max(24px,calc((100vw - 1200px)/2));border-top:1px solid #393939;color:#c5c5c5;font-size:11px}
 @media(max-width:1050px){.wp-header-inner{width:calc(100% - 36px);gap:18px}.wp-logo{flex-basis:170px}.wp-logo-image{width:165px}.wp-nav{gap:15px;font-size:12px}.wp-header-actions{gap:12px}.wp-footer-main{grid-template-columns:1.4fr 1fr 1fr;gap:28px}.wp-footer-main>div:last-child{grid-column:2}}
 @media(max-width:760px){.wp-header-inner{min-height:75px;width:calc(100% - 32px)}.wp-logo{flex-basis:180px}.wp-logo-image{width:170px;height:52px}.wp-nav{display:none}.wp-header-actions{margin-left:auto;gap:15px}.wp-mobile-menu{display:block;position:relative}.wp-mobile-menu summary{list-style:none;display:flex;align-items:center;cursor:pointer}.wp-mobile-menu summary::-webkit-details-marker{display:none}.wp-mobile-menu nav{position:absolute;right:0;top:40px;width:210px;background:#fff;box-shadow:0 10px 30px #0002;display:flex;flex-direction:column;padding:12px}.wp-mobile-menu nav a{padding:12px;border-bottom:1px solid #eee;font-size:14px}.wp-hero{min-height:470px;background-position:58% center;padding:48px 25px}.wp-hero h1{font-size:58px}.wp-hero-copy>p{font-size:21px;max-width:300px}.wp-hero-caption{right:15px;bottom:13px;font-size:8px}.wp-benefits{width:calc(100% - 32px);grid-template-columns:1fr;padding:12px 0}.wp-benefits>div{justify-content:flex-start;padding:13px 10px;border-right:0;border-bottom:1px solid #eee}.wp-benefits>div:last-child{border-bottom:0}.wp-products{width:calc(100% - 32px);padding:48px 0 55px}.wp-section-heading{align-items:flex-start;flex-direction:column;gap:15px}.wp-section-heading h2{font-size:30px}.wp-product-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px 12px}.wp-product-info{flex-direction:column;gap:8px}.wp-product-info h3{font-size:13px}.wp-product-info strong{font-size:13px}.wp-story{padding:52px 22px}.wp-story p{font-size:14px}.wp-footer-trust{grid-template-columns:1fr;padding:12px 24px}.wp-footer-trust>div{justify-content:flex-start;padding:13px 5px;border-right:0;border-bottom:1px solid #393939}.wp-footer-trust>div:last-child{border-bottom:0}.wp-footer-main{width:calc(100% - 40px);grid-template-columns:1fr 1fr;gap:30px 20px;padding:38px 0}.wp-footer-main>div:first-child{grid-column:1/-1}.wp-footer-main>div:last-child{grid-column:auto}.wp-footer-bottom{align-items:flex-start;flex-direction:column;padding:17px 20px;gap:7px}}
+
+
+/* Native Next.js rendering for pages imported from the WordPress content API */
+.wp-content-page{min-height:60vh;background:#fff}
+.wp-breadcrumb{display:flex;align-items:center;gap:10px;padding-top:22px;padding-bottom:22px;color:#777;font-size:11px}
+.wp-breadcrumb a{color:#111}
+.wp-content-article{padding:18px 0 86px;max-width:1000px}
+.wp-content-article>h1,.wp-content-hero h1{font:700 clamp(36px,5vw,64px)/1.06 'League Spartan',sans-serif;letter-spacing:-.045em;margin:14px 0 30px}
+.wordpress-content{font-size:15px;line-height:1.85;color:#262626;overflow-wrap:anywhere}
+.wordpress-content>*{max-width:100%}
+.wordpress-content h1,.wordpress-content h2,.wordpress-content h3,.wordpress-content h4{font-family:'League Spartan',sans-serif;line-height:1.15;letter-spacing:-.025em;color:#090909}
+.wordpress-content h1{font-size:clamp(32px,4vw,48px)}
+.wordpress-content h2{font-size:clamp(25px,3vw,36px);margin:38px 0 14px}
+.wordpress-content h3{font-size:24px;margin:28px 0 12px}
+.wordpress-content p{margin:0 0 18px}
+.wordpress-content a{color:#bd100b;text-decoration:underline;text-underline-offset:3px}
+.wordpress-content img{height:auto;max-width:100%;object-fit:contain}
+.wordpress-content figure{margin:24px 0}
+.wordpress-content figcaption{font-size:12px;color:#777}
+.wordpress-content ul,.wordpress-content ol{padding-left:24px;margin:0 0 22px}
+.wordpress-content li{margin:0 0 8px}
+.wordpress-content blockquote{margin:28px 0;padding:12px 22px;border-left:3px solid #c3110c;background:#f7f7f5}
+.wordpress-content table{width:100%;border-collapse:collapse;margin:22px 0;font-size:13px}
+.wordpress-content td,.wordpress-content th{padding:12px;border:1px solid #e5e5e5;text-align:left}
+.wordpress-content .elementor-section,.wordpress-content .e-con{max-width:100%}
+.wordpress-content .elementor-container,.wordpress-content .e-con-inner{width:100%;max-width:100%}
+.wordpress-content .elementor-widget-container{max-width:100%}
+.wordpress-content .elementor-button,.wordpress-content a.button,.wordpress-content .wp-element-button{display:inline-flex;align-items:center;justify-content:center;background:#c3110c;color:#fff!important;text-decoration:none;padding:13px 20px;font-weight:700;border:0}
+.wordpress-content .elementor-widget-image img{display:block}
+.wordpress-content .elementor-column,.wordpress-content .e-con{min-width:0}
+.wordpress-content .elementor-widget-spacer{height:18px}
+.wp-content-empty{padding:34px;background:#f4f4f1;margin:25px 0}
+.wp-content-empty p{color:#666;line-height:1.8}
+.wp-content-hero{padding:76px 0 62px;background:#f0f0eb}
+.wp-content-hero p{max-width:560px;line-height:1.8;color:#666}
+.wp-blog-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px;padding-top:52px;padding-bottom:82px}
+.wp-blog-card{border:1px solid #e8e8e8;min-width:0}
+.wp-blog-image{display:grid;place-items:center;aspect-ratio:4/3;background:#f0f0eb;overflow:hidden}
+.wp-blog-image img{width:100%;height:100%;object-fit:cover}
+.wp-blog-mark{font:800 90px 'League Spartan',sans-serif;color:#c3110c}
+.wp-blog-copy{padding:22px}
+.wp-blog-copy time,.wp-blog-article time{font-size:11px;color:#777}
+.wp-blog-copy h2{font:700 25px/1.1 'League Spartan',sans-serif;margin:12px 0}
+.wp-blog-copy p{font-size:13px;line-height:1.7;color:#666}
+.wp-blog-article{max-width:900px;padding:18px 0 84px}
+.wp-blog-article h1{font:700 clamp(36px,5vw,62px)/1.06 'League Spartan',sans-serif;letter-spacing:-.04em;margin:18px 0 28px}
+.wp-blog-hero-image{display:block;width:100%;max-height:560px;object-fit:cover;margin-bottom:26px}
+.wp-blog-article .wordpress-content{margin:28px 0 40px}
+.wp-product-sale{color:#c3110c!important;font-weight:700}
+.wp-red-button{display:inline-flex;align-items:center;gap:12px;background:#c3110c;color:#fff;padding:14px 20px;font-size:12px;font-weight:700}
+.wp-text-link{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700}
+.wp-text-link:hover{color:#c3110c}
+@media(max-width:760px){
+ .wp-content-article{padding-bottom:54px}
+ .wordpress-content{font-size:14px}
+ .wp-blog-grid{grid-template-columns:1fr;gap:18px;padding-top:28px;padding-bottom:48px}
+ .wp-blog-copy{padding:18px}
+ .wp-content-hero{padding:48px 0 40px}
+ .wp-breadcrumb{flex-wrap:wrap}
+ .wordpress-content table{display:block;overflow-x:auto}
+}
