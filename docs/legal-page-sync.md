@@ -23,10 +23,10 @@ This uses the public WordPress REST API and does not require WooCommerce credent
 
 ## VPS cron (every hour)
 
-Use `crontab -e` for the same Linux user that owns/runs the app. Replace `/var/www/bendemen` with the actual deployment directory:
+Use `crontab -e` for the same Linux user that owns/runs the app. Replace `/var/www/bendemen` with the actual deployment directory and `/home/DEPLOYUSER` with that user’s home directory:
 
 ```cron
-0 * * * * cd /var/www/bendemen && /usr/bin/npm run sync:legal >> /var/log/bendemen-legal-sync.log 2>&1
+0 * * * * cd /var/www/bendemen && /usr/bin/npm run sync:legal >> /home/DEPLOYUSER/bendemen-legal-sync.log 2>&1
 ```
 
 Find the correct Node/npm paths with `which node` and `which npm`. If the app runs under a Node version manager, use that user's full npm path or call the script with the correct Node executable. Run the first sync manually before adding cron. The page route reads the JSON file on each request, so the app does not need to restart after a successful sync.
@@ -34,7 +34,7 @@ Find the correct Node/npm paths with `which node` and `which npm`. If the app ru
 Check the latest run with:
 
 ```bash
-tail -n 100 /var/log/bendemen-legal-sync.log
+tail -n 100 /home/DEPLOYUSER/bendemen-legal-sync.log
 ```
 
 The cron line must be installed on the VPS after deploying this branch; a GitHub change cannot edit the VPS crontab remotely.
