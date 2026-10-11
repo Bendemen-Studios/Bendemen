@@ -89,5 +89,5 @@ export function safeWordPressHtml(html: string): string {
     .replace(/\s+srcdoc\s*=\s*("[^"]*"|'[^']*')/gi, "")
     .replace(/\s+style\s*=\s*("[^"]*expression[^"]*"|'[^']*expression[^']*')/gi, "")
     .replace(/action=(["'])\/wp-admin\//gi, `action=$1${wordpressOrigin}/wp-admin/`)
-    .replace(/href=(["'])https?:\/\/(?:www\.)?bendemen\.com\//gi, 'href=$1/');
+    .replace(/href=(["'])https?:\/\/(?:www\.)?bendemen\.com\/(?!wp-content\/|wp-includes\/|wp-admin\/|wp-json\/)/gi, 'href=$1/');
 }
