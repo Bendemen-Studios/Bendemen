@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import WishlistButton from "@/components/wishlist-button";
-type WooProduct = { id: number; name: string; short_description: string; categories: { id: number; name: string }[]; images: { src: string; alt?: string }[]; stock_status: string; type: string; price: string; regular_price: string };
+type WooProduct = { id: number; name: string; slug: string; short_description: string; categories: { id: number; name: string }[]; images: { src: string; alt?: string }[]; stock_status: string; type: string; price: string; regular_price: string };
 const formatPrice = (value: string | number) => { const amount = Number(value); return Number.isFinite(amount) ? new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(amount) : "Prijs op aanvraag"; };
 
 export default function ShopClient({ products }: { products: WooProduct[] }) {
@@ -51,7 +51,7 @@ export default function ShopClient({ products }: { products: WooProduct[] }) {
     <p className="shop-result-count">{visible.length} {visible.length === 1 ? "product" : "producten"}</p>
     {visible.length ? <div className="product-grid">{visible.map((product) =>
       <article className="product-card-wrap" key={product.id}>
-        <Link className="product-card" href={"/shop/" + (("slug" in product && product.slug) || product.id) + "/"}>
+        <Link className="product-card" href={"/shop/" + product.slug + "/"}>
           <div className="product-image">
             {product.images?.[0]?.src ? <Image src={product.images[0].src} alt={product.images[0].alt || product.name} fill sizes="(max-width: 760px) 50vw, (max-width: 1180px) 25vw, 280px" /> : <div className="image-placeholder">B.</div>}
             {product.stock_status === "outofstock" && <span className="stock-label">Uitverkocht</span>}
