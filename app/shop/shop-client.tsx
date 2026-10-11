@@ -1,5 +1,6 @@
 'use client';
 
+import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 type WooProduct = { id: number; name: string; short_description: string; categories: { id: number; name: string }[]; images: { src: string; alt?: string }[]; stock_status: string; type: string; price: string; regular_price: string };
@@ -50,7 +51,7 @@ export default function ShopClient({ products }: { products: WooProduct[] }) {
     {visible.length ? <div className="product-grid">{visible.map((product) =>
       <Link className="product-card" href={"/product/" + product.id} key={product.id}>
         <div className="product-image">
-          {product.images?.[0]?.src ? <img src={product.images[0].src} alt={product.images[0].alt || product.name} loading="lazy" /> : <div className="image-placeholder">B.</div>}
+          {product.images?.[0]?.src ? <Image src={product.images[0].src} alt={product.images[0].alt || product.name} fill sizes="(max-width: 760px) 50vw, (max-width: 1180px) 25vw, 280px" /> : <div className="image-placeholder">B.</div>}
           {product.stock_status === "outofstock" && <span className="stock-label">Uitverkocht</span>}
         </div>
         <div className="product-meta"><div><h3>{product.name}</h3><p>{product.categories?.[0]?.name || "BENDEMEN"}</p></div><strong>{product.type === "variable" && !product.price ? "Vanaf " : ""}{formatPrice(product.price || product.regular_price)}</strong></div>

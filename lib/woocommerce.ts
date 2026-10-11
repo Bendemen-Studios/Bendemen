@@ -1,4 +1,5 @@
 import "server-only";
+import { getRedisJson, setRedisJson } from "@/lib/redis";
 
 export type WooCategory = { id: number; name: string; slug: string };
 export type WooAttribute = { id: number; name: string; options: string[]; variation?: boolean };
@@ -20,11 +21,14 @@ export type WooVariation = {
 function apiUrl(path: string) {
   const base = process.env.WOOCOMMERCE_URL;
   if (!base) throw new Error("WOOCOMMERCE_URL is not configured");
-  const url = new URL("/wp-json/wc/v3/" + path.replace(/^\/+/, ""), base);
-  return url;
+  return new URL("/wp-json/wc/v3/" + path.replace(/^\/+/, ""), base);
 }
 
-export async function wooFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
+export async function wooFetch<T>(
+  path: string,
+  init: RequestInit = {},
+  options: { revalidateSeconds?: number; cacheTags?: string[] } = {},
+): Promise<T> {
   const key = process.env.WOOCOMMERCE_CONSUMER_KEY;
   const secret = process.env.WOOCOMMERCE_CONSUMER_SECRET;
   if (!key || !secret || key.includes("replace_me") || secret.includes("replace_me")) {
@@ -33,8 +37,23 @@ export async function wooFetch<T>(path: string, init: RequestInit = {}): Promise
   const headers = new Headers(init.headers);
   headers.set("Authorization", "Basic " + Buffer.from(key + ":" + secret).toString("base64"));
   if (init.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
+
+  // Only explicitly opted-in public catalogue requests are cached. Orders,
+  // stock checks, account data, shipping and checkout keep the default no-store.
+  const cacheOptions = options.revalidateSeconds
+    ? {
+        cache: "force-cache" as const,
+        next: {
+          revalidate: options.revalidateSeconds,
+          ...(options.cacheTags?.length ? { tags: options.cacheTags } : {}),
+        },
+      }
+    : { cache: "no-store" as const };
+
   const response = await fetch(apiUrl(path), {
-    ...init, headers, cache: "no-store",
+    ...init,
+    headers,
+    ...cacheOptions,
     signal: init.signal ?? AbortSignal.timeout(12000),
   });
   if (!response.ok) {
@@ -45,8 +64,22 @@ export async function wooFetch<T>(path: string, init: RequestInit = {}): Promise
 }
 
 export async function getProducts(): Promise<WooProduct[]> {
-  return wooFetch<WooProduct[]>("products?status=publish&per_page=100&orderby=menu_order&order=asc");
+  const storeHost = new URL(process.env.WOOCOMMERCE_URL || "https://www.bendemen.com").host;
+  const cacheKey = "bendemen:woocommerce:products:v1:" + storeHost;
+  const cached = await getRedisJson<WooProduct[]>(cacheKey);
+  if (cached) return cached;
+
+  const products = await wooFetch<WooProduct[]>(
+    "products?status=publish&per_page=100&orderby=menu_order&order=asc",
+    {},
+    { revalidateSeconds: 60, cacheTags: ["woocommerce-products"] },
+  );
+  await setRedisJson(cacheKey, products, 60);
+  return products;
 }
+
+// Intentionally uncached: these reads are used for product detail, stock and
+// checkout validation. Checkout must always validate the current WooCommerce data.
 export async function getProduct(id: number): Promise<WooProduct> {
   return wooFetch<WooProduct>("products/" + id);
 }
