@@ -1,7 +1,9 @@
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { formatPrice, getProduct, getProductVariations, type WooProduct, type WooVariation } from "@/lib/woocommerce";
 import ProductActions from "./product-actions";
+import { SiteFooter, SiteHeader } from "@/components/site-chrome";
 
 export const dynamic = "force-dynamic";
 
@@ -23,15 +25,10 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   const price = product.price || (variantPrices.length ? String(Math.min(...variantPrices)) : product.regular_price);
 
   return <main>
-    <div className="announcement">BENDEMEN · DE COLLECTIE</div>
-    <header className="header wrap">
-      <Link className="wordmark" href="/">BENDEMEN<span>®</span></Link>
-      <nav><Link href="/shop">Shop</Link><Link href="/">Home</Link></nav>
-      <Link className="under-link" href="/winkelwagen">Winkelwagen ↗</Link>
-    </header>
+    <SiteHeader />
     <section className="detail wrap">
       <div className="detail-image">
-        {product.images?.[0]?.src ? <img src={product.images[0].src} alt={product.images[0].alt || product.name} /> : <div className="image-placeholder">B.</div>}
+        {product.images?.[0]?.src ? <Image src={product.images[0].src} alt={product.images[0].alt || product.name} fill priority sizes="(max-width: 760px) 100vw, 50vw" /> : <div className="image-placeholder">B.</div>}
       </div>
       <div className="detail-copy">
         <span className="eyebrow">{product.categories?.[0]?.name || "BENDEMEN"}</span>
@@ -50,6 +47,6 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
         <p className="checkout-note">Veilig afrekenen via Mollie. Je bestelling wordt verwerkt in WooCommerce.</p>
       </div>
     </section>
-    <footer className="footer wrap"><Link className="wordmark" href="/">BENDEMEN<span>®</span></Link><span>© {new Date().getFullYear()} Bendemen</span><Link href="/shop">Verder winkelen</Link></footer>
+    <SiteFooter />
   </main>;
 }
