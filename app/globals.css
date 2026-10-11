@@ -267,3 +267,25 @@
  .wp-breadcrumb{flex-wrap:wrap}
  .wordpress-content table{display:block;overflow-x:auto}
 }
+
+/* Native wishlist */
+.product-card-wrap{position:relative;min-width:0}
+.product-card{display:block;min-width:0}
+.wishlist-toggle{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border:1px solid #e4e4e4;border-radius:50%;background:#fff;color:#222;cursor:pointer;transition:background .2s,color .2s,border-color .2s}
+.wishlist-toggle:hover,.wishlist-toggle.is-saved{background:#c3110c;border-color:#c3110c;color:#fff}
+.product-card-wrap>.wishlist-toggle{position:absolute;right:12px;top:12px;z-index:2;box-shadow:0 2px 10px #00000012}
+.detail-copy>.wishlist-toggle{margin:12px 0 18px}
+.wp-wishlist-section{padding-top:44px;padding-bottom:78px}
+.wp-wishlist-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px}
+.wp-wishlist-card{min-width:0}
+.wp-wishlist-image{display:grid;place-items:center;position:relative;aspect-ratio:4/4.8;background:#f4f4f2;overflow:hidden}
+.wp-wishlist-image img{object-fit:cover}
+.wp-wishlist-image>span{font:800 70px 'League Spartan',sans-serif;color:#c3110c}
+.wp-wishlist-meta{display:flex;justify-content:space-between;gap:10px;padding-top:12px}
+.wp-wishlist-meta h2{font:700 15px 'League Spartan',sans-serif;margin:0 0 5px}
+.wp-wishlist-meta p{font-size:10px;color:#777;margin:0 0 7px}
+.wp-wishlist-meta strong{font-size:12px}
+.wishlist-empty{text-align:center;padding:45px 20px;background:#f5f5f2;display:flex;align-items:center;flex-direction:column;gap:12px}
+.wishlist-empty h2{font:700 30px 'League Spartan',sans-serif;margin:0}
+.wishlist-empty p{color:#666;font-size:13px;line-height:1.7;max-width:460px}
+@media(max-width:760px){.wp-wishlist-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 12px}.wishlist-toggle{width:34px;height:34px}}
