@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getProducts, type WooProduct } from "@/lib/woocommerce";
 import ShopClient from "./shop-client";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export default async function Shop() {
   let products: WooProduct[] = [];
