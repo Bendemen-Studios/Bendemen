@@ -21,7 +21,7 @@ export type WooVariation = {
 function apiUrl(path: string) {
   const base = process.env.WOOCOMMERCE_URL;
   if (!base) throw new Error("WOOCOMMERCE_URL is not configured");
-  return new URL("/wp-json/wc/v3/" + path.replace(/^\\/+/, ""), base);
+  return new URL("/wp-json/wc/v3/" + path.replace(/^\/+/, ""), base);
 }
 
 export async function wooFetch<T>(
