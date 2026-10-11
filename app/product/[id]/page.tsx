@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { formatPrice, getProduct, getProductVariations, type WooProduct, type WooVariation } from "@/lib/woocommerce";
 import ProductActions from "./product-actions";
 import { SiteFooter, SiteHeader } from "@/components/site-chrome";
+import WishlistButton from "@/components/wishlist-button";
 
 export const dynamic = "force-dynamic";
 
@@ -38,6 +39,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
         <p className={product.stock_status === "instock" ? "stock-available" : "stock-unavailable"}>
           {product.stock_status === "instock" ? "Op voorraad" : "Momenteel niet op voorraad"}
         </p>
+        <WishlistButton productId={product.id} productName={product.name}/>
         <ProductActions
           product={{ id: product.id, name: product.name, price: price || "0", image: product.images?.[0]?.src || "", type: product.type }}
           disabled={product.type !== "variable" && (!product.purchasable || product.stock_status === "outofstock")}

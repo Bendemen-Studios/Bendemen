@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { formatPrice, getProducts, getProductVariations, type WooProduct, type WooVariation } from "@/lib/woocommerce";
 import ProductActions from "@/app/product/[id]/product-actions";
 import { SiteFooter, SiteHeader } from "@/components/site-chrome";
+import WishlistButton from "@/components/wishlist-button";
 
 export const revalidate = 60;
 type Props = { params: Promise<{ slug: string }> };
@@ -45,6 +46,7 @@ export default async function ProductBySlugPage({ params }: Props) {
         {product.regular_price && product.sale_price && Number(product.sale_price) < Number(product.regular_price) && <p className="wp-product-sale">Was {formatPrice(product.regular_price)} · Nu {formatPrice(product.sale_price)}</p>}
         <div className="product-description" dangerouslySetInnerHTML={{ __html: product.short_description || product.description || "" }} />
         <p className={product.stock_status === "instock" ? "stock-available" : "stock-unavailable"}>{product.stock_status === "instock" ? "Op voorraad" : "Momenteel niet op voorraad"}</p>
+        <WishlistButton productId={product.id} productName={product.name}/>
         <ProductActions product={{ id: product.id, name: product.name, price: price || "0", image: product.images?.[0]?.src || "", type: product.type }} disabled={product.type !== "variable" && (!product.purchasable || product.stock_status === "outofstock")} attributes={product.attributes || []} variations={variations} />
         <p className="checkout-note">Veilig afrekenen via Mollie. Je bestelling wordt verwerkt in WooCommerce.</p>
         <Link className="wp-text-link" href="/shop/">Verder winkelen</Link>
