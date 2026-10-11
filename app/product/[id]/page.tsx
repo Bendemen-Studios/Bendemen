@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { formatPrice, getProduct, getProductVariations, type WooProduct, type WooVariation } from "@/lib/woocommerce";
@@ -7,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  if (!/^\d+$/.test(id)) notFound();
+  if (!/^\\d+$/.test(id)) notFound();
   let product: WooProduct;
   try {
     product = await getProduct(Number(id));
@@ -31,7 +32,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
     </header>
     <section className="detail wrap">
       <div className="detail-image">
-        {product.images?.[0]?.src ? <img src={product.images[0].src} alt={product.images[0].alt || product.name} /> : <div className="image-placeholder">B.</div>}
+        {product.images?.[0]?.src ? <Image src={product.images[0].src} alt={product.images[0].alt || product.name} fill priority sizes="(max-width: 760px) 100vw, 50vw" /> : <div className="image-placeholder">B.</div>}
       </div>
       <div className="detail-copy">
         <span className="eyebrow">{product.categories?.[0]?.name || "BENDEMEN"}</span>
