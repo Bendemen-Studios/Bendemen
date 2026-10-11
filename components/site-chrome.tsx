@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Heart, UserRound, ShoppingBag, Menu } from "lucide-react";
 
-const logoUrl = "https://www.bendemen.com/wp-content/uploads/2026/09/Bendemen-Logo-Slogan-2.png";
+const logoUrl = "https://www.bendemen.com/wp-content/uploads/2025/12/Kopie-van-Bendemen-Logo-Slogan-1.png";
 
 export function SiteHeader() {
   return (
