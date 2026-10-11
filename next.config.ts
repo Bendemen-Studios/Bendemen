@@ -14,6 +14,20 @@ const nextConfig: NextConfig = {
     ],
     minimumCacheTTL: 60 * 60 * 24 * 7,
   },
+  async rewrites() {
+    return {
+      // Existing Next.js routes (home, shop, product, account, cart, checkout,
+      // privacy and terms) win first. Pages that have not yet been rebuilt
+      // are served by the original WordPress frontend, preserving their
+      // Elementor/Woodmart layout, CSS, images and working plugin pages.
+      afterFiles: [
+        {
+          source: "/:path*",
+          destination: "https://www.bendemen.com/:path*",
+        },
+      ],
+    };
+  },
 };
 
 export default nextConfig;
