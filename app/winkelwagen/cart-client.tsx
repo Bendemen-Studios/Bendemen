@@ -1,5 +1,6 @@
 'use client';
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -26,7 +27,7 @@ export default function CartClient() {
   return items.length ? <>
     <div className="cart-list">
       {items.map((item) => <div key={item.id + "-" + (item.variationId || 0)} className="cart-item">
-        <div className="cart-image">{item.image && <img src={item.image} alt="" loading="lazy" />}</div>
+        <div className="cart-image">{item.image && <Image src={item.image} alt="" width={78} height={88} sizes="78px" />}</div>
         <div className="cart-item-main">
           <b>{item.name}</b>
           {item.variationLabel && <small>{item.variationLabel}</small>}
