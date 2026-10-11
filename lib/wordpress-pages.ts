@@ -25,7 +25,7 @@ type WpRestPage = {
 
 type LegalPagesFile = { pages?: WordPressPage[]; syncedAt?: string };
 
-const wordpressOrigin = (process.env.WORDPRESS_URL || process.env.WOOCOMMERCE_URL || "https://www.bendemen.com").replace(/\/$/, "");
+export const wordpressOrigin = (process.env.WORDPRESS_URL || process.env.WOOCOMMERCE_URL || "https://www.bendemen.com").replace(/\/$/, "");
 
 function decodeEntities(value: string): string {
   return value
@@ -77,14 +77,17 @@ export async function getCachedLegalPage(slug: string): Promise<WordPressPage | 
   }
 }
 
-// WordPress is our trusted content source, but page HTML is still sanitized
-// before being rendered in the Next.js application.
+// Keep the source page's HTML structure, inline layout styles and form fields,
+// while removing executable scripts and event handlers. Form submissions go
+// to the existing WordPress backend; page rendering and routing stay in Next.js.
 export function safeWordPressHtml(html: string): string {
   return html
-    .replace(/<(script|style|iframe|object|embed|form|input|button|textarea|select|option)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, "")
-    .replace(/<(script|style|iframe|object|embed|form|input|button|textarea|select|option)\b[^>]*\/?\s*>/gi, "")
+    .replace(/<(script|style|object|embed)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, "")
+    .replace(/<(script|style|object|embed)\b[^>]*\/?\s*>/gi, "")
     .replace(/\s+on[a-z]+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, "")
     .replace(/\s+(href|src|xlink:href)\s*=\s*("|')\s*javascript:[\s\S]*?\2/gi, "")
     .replace(/\s+srcdoc\s*=\s*("[^"]*"|'[^']*')/gi, "")
-    .replace(/\s+style\s*=\s*("|')[^\1]*?expression\s*\([^\)]*\)[^\1]*?\1/gi, "");
+    .replace(/\s+style\s*=\s*("[^"]*expression[^"]*"|'[^']*expression[^']*')/gi, "")
+    .replace(/action=(["'])\/wp-admin\//gi, `action=$1${wordpressOrigin}/wp-admin/`)
+    .replace(/href=(["'])https?:\/\/(?:www\.)?bendemen\.com\//gi, 'href=$1/');
 }
