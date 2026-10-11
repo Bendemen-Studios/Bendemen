@@ -122,3 +122,10 @@ De accountpagina bevat een beveiligde koppeling naar de native WooCommerce-beste
 5. Test de volledige flow met een betaalde testbestelling. De koppeling voert zelf geen refund uit en markeert geen bestelling als terugbetaald.
 
 De koppeling gebruikt een kortlevende eenmalige token; de klant wordt niet via een e-mailadres of ordernummer geauthenticeerd. Refundaanvragen als gast zijn niet mogelijk via YITH, daarom is een ingelogd klantaccount vereist.
+
+
+## Performance, caching en afbeeldingen
+
+De openbare productcatalogus gebruikt een cache van 60 seconden. Als `REDIS_URL` is ingesteld, wordt Redis als extra cache gebruikt; zonder Redis blijft de Next.js Data Cache actief. Product-/voorraadvalidatie, accounts, verzending, checkout, bestellingen en betalingen blijven ongecached waar actuele of persoonlijke gegevens nodig zijn. Zie [docs/performance-and-redis.md](docs/performance-and-redis.md) voor de veilige Redis-installatie en configuratie.
+
+Next.js Image Optimization genereert AVIF/WebP-varianten en onderhandelt op basis van browserondersteuning. Originele WooCommerce-afbeeldingen blijven behouden als fallback; de image host moet onder `*.bendemen.com` vallen of expliciet in `next.config.ts` worden toegevoegd.
