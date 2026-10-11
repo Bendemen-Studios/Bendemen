@@ -1,70 +1,50 @@
-import fs from "node:fs/promises";
-import path from "node:path";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { SiteFooter, SiteHeader } from "@/components/site-chrome";
+import { getCachedLegalPage, getWordPressPage, safeWordPressHtml, wordpressOrigin } from "@/lib/wordpress-pages";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
-type LegalPageData = {
-  slug: string;
-  title: string;
-  content: string;
-  sourceUrl: string;
-  modified: string | null;
-};
-type LegalPagesFile = { pages?: LegalPageData[]; syncedAt?: string };
+type Props = { params: Promise<{ legalSlug: string }> };
 
-async function getLegalPage(slug: string): Promise<LegalPageData | null> {
-  try {
-    const file = await fs.readFile(path.join(process.cwd(), "data", "legal-pages.json"), "utf8");
-    const data = JSON.parse(file) as LegalPagesFile;
-    return data.pages?.find((page) => page.slug === slug) ?? null;
-  } catch {
-    return null;
-  }
-}
-
-// The HTML is sourced from Bendemen's own published WordPress pages. Remove active
-// content and inline event handlers before rendering the synchronized page body.
-function safeWordPressHtml(html: string): string {
-  return html
-    .replace(/<(script|style|iframe|object|embed|form|input|button)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, "")
-    .replace(/<(script|style|iframe|object|embed|form|input|button)\b[^>]*\/?\s*>/gi, "")
-    .replace(/\s+on[a-z]+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, "")
-    .replace(/\s+(href|src)\s*=\s*("|')\s*javascript:[\s\S]*?\2/gi, "");
-}
-
-export async function generateMetadata({ params }: { params: Promise<{ legalSlug: string }> }) {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { legalSlug } = await params;
-  const page = await getLegalPage(legalSlug);
-  return page
-    ? { title: `${page.title} | Bendemen`, alternates: { canonical: page.sourceUrl } }
-    : { title: "Pagina niet gevonden | Bendemen" };
+  const page = await getWordPressPage(legalSlug) ?? await getCachedLegalPage(legalSlug);
+  if (!page) return { title: "Pagina niet gevonden | Bendemen" };
+  return {
+    title: page.title + " | Bendemen",
+    description: page.excerpt || undefined,
+    alternates: { canonical: "/" + page.slug + "/" },
+  };
 }
 
-export default async function SyncedLegalPage({ params }: { params: Promise<{ legalSlug: string }> }) {
+export default async function WordPressContentPage({ params }: Props) {
   const { legalSlug } = await params;
-  const page = await getLegalPage(legalSlug);
+  const page = await getWordPressPage(legalSlug) ?? await getCachedLegalPage(legalSlug);
   if (!page) notFound();
 
+  const html = safeWordPressHtml(page.content);
   return (
-    <main className="legal-page wrap">
-      <header className="header">
-        <Link className="wordmark" href="/">BENDEMEN<span>®</span></Link>
-        <Link className="under-link" href="/shop">Terug naar de shop</Link>
-      </header>
-      <article className="legal-content">
-        <span className="eyebrow">JURIDISCHE INFORMATIE</span>
-        <h1>{page.title}</h1>
-        <div dangerouslySetInnerHTML={{ __html: safeWordPressHtml(page.content) }} />
-        <p className="legal-sync-note">Laatst bijgewerkt op de bronwebsite: {page.modified ? new Date(page.modified).toLocaleDateString("nl-NL", { dateStyle: "long", timeZone: "Europe/Amsterdam" }) : "onbekend"}.</p>
+    <main className="wp-content-page">
+      {page.id ? <link rel="stylesheet" href={`${wordpressOrigin}/wp-content/uploads/elementor/css/post-${page.id}.css`} /> : null}
+      <SiteHeader />
+      <nav className="wp-breadcrumb wrap" aria-label="Broodkruimelpad">
+        <Link href="/">Home</Link><span>/</span><span>{page.title}</span>
+      </nav>
+      <article className="wp-content-article wrap">
+        <span className="wp-eyebrow">BENDEMEN · INFORMATIE</span>
+        {html.trim() ? (
+          <div className="wordpress-content" dangerouslySetInnerHTML={{ __html: html }} />
+        ) : (
+          <div className="wp-content-empty">
+            <h1>{page.title}</h1>
+            <p>Deze pagina hoort bij Bendemen. De inhoud wordt voorbereid voor de nieuwe webshop.</p>
+            <Link className="wp-red-button" href="/shop">Bekijk de collectie</Link>
+          </div>
+        )}
       </article>
-      <footer className="footer">
-        <Link href="/">Bendemen</Link>
-        <Link href="/shop">Shop</Link>
-        <Link href="/terms-and-conditions">Algemene voorwaarden</Link>
-        <Link href="/privacyverklaring-eu">Privacyverklaring</Link>
-      </footer>
+      <SiteFooter />
     </main>
   );
 }
