@@ -1,22 +1,27 @@
-
 name: Auto Merge
 
 on:
-  pull_request:
-    types: [opened, reopened, synchronize]
-    branches:
-      - main
+  workflow_run:
+    workflows: ["Build webshop"]
+    types: [completed]
 
 permissions:
   contents: write
   pull-requests: write
 
 jobs:
-  enable-auto-merge:
+  merge-after-successful-build:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'pull_request'
     runs-on: ubuntu-latest
     steps:
-      - name: Enable automatic merge
+      - name: Merge pull request after successful build
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_URL: ${{ github.event.pull_request.html_url }}
-        run: gh pr merge "$PR_URL" --auto --squash
+          BRANCH_NAME: ${{ github.event.workflow_run.head_branch }}
+        run: |
+          PR_URL="$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH_NAME" --state open --json url --jq '.[0].url')"
+          if [ -z "$PR_URL" ]; then
+            echo "No open pull request found for $BRANCH_NAME; nothing to merge."
+            exit 0
+          fi
+          gh pr merge "$PR_URL" --squash
