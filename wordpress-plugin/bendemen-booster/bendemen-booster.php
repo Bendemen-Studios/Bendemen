@@ -54,6 +54,10 @@ final class Bendemen_Booster_Connector {
             'caching' => [
                 'persistentObjectCache' => wp_using_ext_object_cache(),
                 'objectCacheDropInPresent' => file_exists(WP_CONTENT_DIR . '/object-cache.php'),
+                'redisClientConfigured' => defined('WP_REDIS_HOST') || defined('WP_REDIS_PATH'),
+                'redisTlsConfigured' => defined('WP_REDIS_SCHEME') && WP_REDIS_SCHEME === 'tls',
+                'redisHostConfigured' => defined('WP_REDIS_HOST') || defined('WP_REDIS_PATH'),
+                'redisAuthConfigured' => defined('WP_REDIS_PASSWORD') && WP_REDIS_PASSWORD !== '',
                 'wpCacheConstantEnabled' => defined('WP_CACHE') && WP_CACHE,
                 'pageCachePluginDetected' => $this->detect_page_cache_plugin(),
                 'pageCachePlugins' => $this->get_page_cache_plugins(),
