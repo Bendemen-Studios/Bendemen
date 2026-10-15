@@ -60,11 +60,16 @@ if (is_file($bb_cache_file) && (time() - (int) @filemtime($bb_cache_file)) < $bb
 
 // Capture the final HTML only. Store at shutdown after WordPress has set its response headers.
 $bb_buffer = '';
+$bb_base_level = ob_get_level();
 ob_start(static function ($chunk) use (&$bb_buffer) {
     $bb_buffer .= $chunk;
     return $chunk;
 });
-register_shutdown_function(static function () use (&$bb_buffer, $bb_cache_file, $bb_cache_dir, $bb_enabled_flag, $bb_ttl) {
+register_shutdown_function(static function () use (&$bb_buffer, $bb_base_level, $bb_cache_file, $bb_cache_dir, $bb_enabled_flag, $bb_ttl) {
+    // Flush nested buffers through our capture callback before deciding whether to cache.
+    while (ob_get_level() > $bb_base_level) {
+        if (!@ob_end_flush()) { break; }
+    }
     if (!is_file($bb_enabled_flag) || !is_dir($bb_cache_dir) || !is_writable($bb_cache_dir)) { return; }
     if (http_response_code() !== 200 || strlen($bb_buffer) < 256 || strlen($bb_buffer) > 5 * 1024 * 1024) { return; }
     if (stripos($bb_buffer, '<html') === false && stripos($bb_buffer, '<!doctype html') === false) { return; }
