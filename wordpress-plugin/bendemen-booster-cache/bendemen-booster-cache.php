@@ -105,6 +105,8 @@ final class Bendemen_Booster_Cache {
             'cache-enabler/cache-enabler.php' => 'Cache Enabler',
             'wp-fastest-cache/wpFastestCache.php' => 'WP Fastest Cache',
             '10web-booster/tenweb-booster.php' => '10Web Booster',
+            'tenweb-booster/tenweb-booster.php' => '10Web Booster',
+            'tenweb-speed-optimizer/tenweb-speed-optimizer.php' => '10Web Speed Optimizer',
         ];
         $active = (array) get_option('active_plugins', []);
         $found = [];
