@@ -80,6 +80,8 @@ register_shutdown_function(static function () use (&$bb_buffer, $bb_base_level, 
     if (!is_file($bb_enabled_flag) || !is_dir($bb_cache_dir) || !is_writable($bb_cache_dir)) { return; }
     if (http_response_code() !== 200 || strlen($bb_buffer) < 256 || strlen($bb_buffer) > 5 * 1024 * 1024) { return; }
     if (stripos($bb_buffer, '<html') === false && stripos($bb_buffer, '<!doctype html') === false) { return; }
+    // Do not persist HTML containing common nonce/session markers. This is intentionally conservative.
+    if (preg_match('/(?:wpnonce|_wpnonce|woocommerce-process-checkout-nonce|wc_store_api|wp_rest|rest_nonce)/i', $bb_buffer)) { return; }
     foreach (headers_list() as $header) {
         if (stripos($header, 'Set-Cookie:') === 0 || stripos($header, 'Cache-Control: no-store') === 0 || stripos($header, 'Cache-Control: private') === 0 || stripos($header, 'X-Robots-Tag: noindex') === 0) { return; }
         if (stripos($header, 'Content-Type:') === 0 && stripos($header, 'text/html') === false) { return; }
