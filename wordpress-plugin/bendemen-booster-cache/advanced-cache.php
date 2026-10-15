@@ -17,7 +17,7 @@ $bb_uri = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST_URI'] : '/
 $bb_path = (string) parse_url($bb_uri, PHP_URL_PATH);
 $bb_query = (string) parse_url($bb_uri, PHP_URL_QUERY);
 $bb_host = isset($_SERVER['HTTP_HOST']) ? strtolower((string) $_SERVER['HTTP_HOST']) : '';
-$bb_host = preg_replace('/:\\d+$/', '', $bb_host);
+$bb_host = preg_replace('/:\d+$/', '', $bb_host);
 
 // Never cache query-string requests: this avoids leaking campaign, nonce, search, filter or personalized output.
 if ($bb_query !== '' || !in_array($bb_host, ['bendemen.com', 'www.bendemen.com'], true)) { return; }
