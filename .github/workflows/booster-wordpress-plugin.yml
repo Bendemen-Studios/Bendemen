@@ -1,0 +1,26 @@
+name: Booster WordPress Plugin CI
+
+on:
+  pull_request:
+    paths:
+      - "wordpress-plugin/**"
+      - ".github/workflows/booster-wordpress-plugin.yml"
+  push:
+    branches: [main]
+    paths:
+      - "wordpress-plugin/**"
+      - ".github/workflows/booster-wordpress-plugin.yml"
+
+jobs:
+  php-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          tools: none
+      - name: Lint Booster PHP files
+        run: |
+          find wordpress-plugin -type f -name '*.php' -print0 | xargs -0 -n1 php -l

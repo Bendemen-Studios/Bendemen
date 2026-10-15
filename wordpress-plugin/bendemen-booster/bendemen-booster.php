@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Bendemen Booster Connector
  * Description: Authenticated health bridge and conservative frontend performance controls for Bendemen Booster.
- * Version: 0.2.0
+ * Version: 0.3.0
  * Author: Bendemen Studios
  * Requires PHP: 8.0
  * Requires Plugins: woocommerce
@@ -18,6 +18,7 @@ final class Bendemen_Booster_Connector {
     public function __construct() {
         add_action('rest_api_init', [$this, 'register_routes']);
         add_action('admin_menu', [$this, 'add_settings_page']);
+        add_action('admin_menu', [$this, 'add_redis_page']);
         add_action('admin_init', [$this, 'register_settings']);
         add_action('wp_enqueue_scripts', [$this, 'apply_frontend_optimisations'], 100);
         add_action('init', [$this, 'remove_emoji_support'], 20);
@@ -53,7 +54,14 @@ final class Bendemen_Booster_Connector {
             ],
             'caching' => [
                 'persistentObjectCache' => wp_using_ext_object_cache(),
+                'objectCacheRoundTrip' => $this->object_cache_round_trip(),
+                'redisPhpExtensionAvailable' => extension_loaded('redis'),
+                'redisAclUsernameConfigured' => defined('WP_REDIS_USERNAME') && WP_REDIS_USERNAME !== '',
                 'objectCacheDropInPresent' => file_exists(WP_CONTENT_DIR . '/object-cache.php'),
+                'redisClientConfigured' => defined('WP_REDIS_HOST') || defined('WP_REDIS_PATH'),
+                'redisTlsConfigured' => defined('WP_REDIS_SCHEME') && WP_REDIS_SCHEME === 'tls',
+                'redisHostConfigured' => defined('WP_REDIS_HOST') || defined('WP_REDIS_PATH'),
+                'redisAuthConfigured' => defined('WP_REDIS_PASSWORD') && WP_REDIS_PASSWORD !== '',
                 'wpCacheConstantEnabled' => defined('WP_CACHE') && WP_CACHE,
                 'pageCachePluginDetected' => $this->detect_page_cache_plugin(),
                 'pageCachePlugins' => $this->get_page_cache_plugins(),
@@ -71,6 +79,10 @@ final class Bendemen_Booster_Connector {
             'litespeed-cache/litespeed-cache.php' => 'LiteSpeed Cache',
             'cache-enabler/cache-enabler.php' => 'Cache Enabler',
             'wp-fastest-cache/wpFastestCache.php' => 'WP Fastest Cache',
+            'bendemen-booster-cache/bendemen-booster-cache.php' => 'Bendemen Booster Cache',
+            '10web-booster/tenweb-booster.php' => '10Web Booster',
+            'tenweb-booster/tenweb-booster.php' => '10Web Booster',
+            'tenweb-speed-optimizer/tenweb-speed-optimizer.php' => '10Web Speed Optimizer',
         ];
         $active = (array) get_option('active_plugins', []);
         $found = [];
@@ -88,6 +100,92 @@ final class Bendemen_Booster_Connector {
 
     private function detect_page_cache_plugin(): bool {
         return count($this->get_page_cache_plugins()) > 0;
+    }
+
+    public function add_redis_page(): void {
+        add_submenu_page(
+            'options-general.php',
+            'Bendemen Booster Redis',
+            'Bendemen Booster Redis',
+            'manage_options',
+            'bendemen-booster-redis',
+            [$this, 'render_redis_page']
+        );
+    }
+
+    /**
+     * Tests the WordPress object-cache API without exposing credentials.
+     * This alone does not prove Redis is the backend; pair it with the
+     * persistent-cache and drop-in diagnostics.
+     */
+    private function object_cache_round_trip(): bool {
+        if (!function_exists('wp_cache_set') || !function_exists('wp_cache_get')) {
+            return false;
+        }
+        $key = 'bb-health-' . wp_generate_password(12, false, false);
+        $value = wp_generate_uuid4();
+        $stored = wp_cache_set($key, $value, 'bendemen_booster_health', 30);
+        $found = wp_cache_get($key, 'bendemen_booster_health');
+        if (function_exists('wp_cache_delete')) {
+            wp_cache_delete($key, 'bendemen_booster_health');
+        }
+        return $stored && $found === $value;
+    }
+
+    public function render_redis_page(): void {
+        if (!current_user_can('manage_options')) { return; }
+
+        $persistent = wp_using_ext_object_cache();
+        $dropin = file_exists(WP_CONTENT_DIR . '/object-cache.php');
+        $host = defined('WP_REDIS_HOST') && WP_REDIS_HOST !== '';
+        $path = defined('WP_REDIS_PATH') && WP_REDIS_PATH !== '';
+        $configured = $host || $path;
+        $tls = defined('WP_REDIS_SCHEME') && WP_REDIS_SCHEME === 'tls';
+        $auth = defined('WP_REDIS_PASSWORD') && WP_REDIS_PASSWORD !== '';
+        $username = defined('WP_REDIS_USERNAME') && WP_REDIS_USERNAME !== '';
+        $roundtrip = $this->object_cache_round_trip();
+
+        echo '<div class="wrap"><h1>Bendemen Booster — Redis Object Cache</h1>';
+        echo '<p>Redis-objectcaching is apart van de full-page cache. Deze pagina controleert de WordPress-configuratie en schrijft geen Redis-wachtwoorden op in de database of het dashboard.</p>';
+        echo '<table class="widefat striped" style="max-width:900px"><tbody>';
+        $rows = [
+            'Externe objectcache actief' => $persistent,
+            'WordPress object-cache.php aanwezig' => $dropin,
+            'Redis-host of socket ingesteld' => $configured,
+            'TLS ingesteld' => $tls,
+            'Wachtwoord ingesteld' => $auth,
+            'ACL-gebruikersnaam ingesteld (indien vereist)' => $username,
+            'PHP Redis-extensie aanwezig' => extension_loaded('redis'),
+            'Object-cache read/write-test geslaagd' => $roundtrip,
+        ];
+        foreach ($rows as $label => $ok) {
+            printf(
+                '<tr><th scope="row">%s</th><td><strong>%s</strong></td></tr>',
+                esc_html($label),
+                esc_html($ok ? 'Ja' : 'Nee')
+            );
+        }
+        echo '</tbody></table>';
+
+        if (!$persistent || !$dropin) {
+            echo '<div class="notice notice-warning inline"><p>Objectcaching is nog niet volledig actief. Installeer één compatibele Redis object-cache-drop-in en activeer die pas nadat de Redis-verbinding werkt. Er mag maar één bestand <code>wp-content/object-cache.php</code> zijn.</p></div>';
+        } elseif (!$configured || !$tls || !$auth) {
+            echo '<div class="notice notice-warning inline"><p>Controleer de Redis-constanten in <code>wp-config.php</code>. Gebruik TLS en authenticatie; deel wachtwoorden nooit via het dashboard, REST-endpoint of Git.</p></div>';
+        } elseif (!$roundtrip) {
+            echo '<div class="notice notice-error inline"><p>De object-cache read/write-test is mislukt. Controleer de Redis-clientlogs en verbinding voordat je de cache voor productie gebruikt.</p></div>';
+        } else {
+            echo '<div class="notice notice-success inline"><p>De WordPress object-cache API werkt en de basisconfiguratie is aanwezig. Controleer ook de Redis-clientstatus/logs om te bevestigen dat Redis het actieve backend is.</p></div>';
+        }
+
+        echo '<h2>Veilige configuratie</h2><ol>';
+        echo '<li>Configureer host, poort, TLS, gebruikersnaam en wachtwoord als constanten in <code>wp-config.php</code>, boven de stop-editing-regel.</li>';
+        echo '<li>Gebruik een geheim dat door je hostingomgeving wordt geleverd of een veilige serverconfiguratie; commit nooit wachtwoorden naar Git.</li>';
+        echo '<li>Installeer slechts één Redis object-cache-drop-in. Als een andere plugin al <code>object-cache.php</code> beheert, overschrijf die niet.</li>';
+        echo '<li>Test productpagina’s, voorraad, winkelmand, checkout, account, inloggen/uitloggen, orderstatussen en webhooks.</li>';
+        echo '</ol>';
+        echo '<p><a href="https://wordpress.org/plugins/redis-cache/" target="_blank" rel="noopener noreferrer">Redis Object Cache client op WordPress.org</a></p>';
+        echo '<p><strong>Geen dubbele paginacache:</strong> Redis bewaart WordPress-objecten; de Bendemen Booster Cache is een afzonderlijke full-page HTML-cache. Activeer nooit twee full-page cacheplugins tegelijk. Smush blijft verantwoordelijk voor afbeeldingsoptimalisatie.</p>';
+        echo '</div>';
     }
 
     public function add_settings_page(): void {
