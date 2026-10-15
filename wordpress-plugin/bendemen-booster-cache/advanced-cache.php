@@ -20,7 +20,12 @@ $bb_host = isset($_SERVER['HTTP_HOST']) ? strtolower((string) $_SERVER['HTTP_HOS
 $bb_host = preg_replace('/:\\d+$/', '', $bb_host);
 
 // Never cache query-string requests: this avoids leaking campaign, nonce, search, filter or personalized output.
-if ($bb_query !== '' || $bb_host === '' || strpos($bb_host, 'bendemen.com') === false) { return; }
+if ($bb_query !== '' || !in_array($bb_host, ['bendemen.com', 'www.bendemen.com'], true)) { return; }
+
+// Never cache authenticated, partial, API, or non-HTML requests.
+if (!empty($_SERVER['HTTP_AUTHORIZATION']) || !empty($_SERVER['HTTP_RANGE'])) { return; }
+$bb_accept = isset($_SERVER['HTTP_ACCEPT']) ? (string) $_SERVER['HTTP_ACCEPT'] : '';
+if ($bb_accept !== '' && stripos($bb_accept, 'text/html') === false) { return; }
 
 // Bypass all cookies, including WooCommerce sessions and unknown personalization/consent plugins.
 if (!empty($_SERVER['HTTP_COOKIE'])) { return; }
@@ -57,6 +62,8 @@ if (is_file($bb_cache_file) && (time() - (int) @filemtime($bb_cache_file)) < $bb
     readfile($bb_cache_file);
     exit;
 }
+
+if (!headers_sent()) { header('X-Bendemen-Cache: MISS'); }
 
 // Capture the final HTML only. Store at shutdown after WordPress has set its response headers.
 $bb_buffer = '';
