@@ -143,6 +143,10 @@ final class Bendemen_Booster_Cache {
             @unlink($this->dropin_path());
             wp_die('De cachemap kan niet beschrijfbaar worden gemaakt. Drop-in teruggedraaid.', 'Installatie mislukt', ['response' => 500]);
         }
+        if (file_put_contents($this->cache_dir() . '/cache-enabled.flag', "enabled\\n", LOCK_EX) === false) {
+            @unlink($this->dropin_path());
+            wp_die('De cache-activeringsmarkering kan niet worden geschreven. Drop-in teruggedraaid.', 'Installatie mislukt', ['response' => 500]);
+        }
         update_option(self::OPTION_ENABLED, '1', false);
         $this->purge_all();
         wp_safe_redirect(admin_url('options-general.php?page=bendemen-booster-cache&enabled=1'));
@@ -153,6 +157,8 @@ final class Bendemen_Booster_Cache {
         if (!current_user_can('manage_options')) { wp_die('Forbidden', 403); }
         check_admin_referer('bendemen_booster_cache_disable');
         update_option(self::OPTION_ENABLED, '0', false);
+        $flag = $this->cache_dir() . '/cache-enabled.flag';
+        if (is_file($flag) && !is_link($flag)) { @unlink($flag); }
         $this->purge_all();
         // Never remove advanced-cache.php automatically; it may have been modified or become shared.
         wp_safe_redirect(admin_url('options-general.php?page=bendemen-booster-cache&disabled=1'));
