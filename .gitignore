@@ -1,7 +1,10 @@
-node_modules
-.next
-out
+node_modules/
+.next/
+out/
+dist/
 .env
-.env.local
-.env.production
+.env.*
+!.env.example
 *.log
+.DS_Store
+coverage/
