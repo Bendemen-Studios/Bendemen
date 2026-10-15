@@ -145,6 +145,17 @@ final class Bendemen_Booster_Cache {
             @unlink($this->dropin_path());
             wp_die('De cachemap kan niet beschrijfbaar worden gemaakt. Drop-in teruggedraaid.', 'Installatie mislukt', ['response' => 500]);
         }
+        // Cache files must not be directly downloadable from the web.
+        $deny = $this->cache_dir() . '/.htaccess';
+        if (!file_exists($deny) && file_put_contents($deny, "Require all denied\\nDeny from all\\n", LOCK_EX) === false) {
+            @unlink($this->dropin_path());
+            wp_die('De cachemap kan niet veilig worden afgeschermd. Drop-in teruggedraaid.', 'Installatie mislukt', ['response' => 500]);
+        }
+        $index = $this->cache_dir() . '/index.php';
+        if (!file_exists($index) && file_put_contents($index, "<?php\\nhttp_response_code(404);\\nexit;\\n", LOCK_EX) === false) {
+            @unlink($this->dropin_path());
+            wp_die('Het indexbestand voor de cachemap kon niet worden geschreven. Drop-in teruggedraaid.', 'Installatie mislukt', ['response' => 500]);
+        }
         if (file_put_contents($this->cache_dir() . '/cache-enabled.flag', "enabled\\n", LOCK_EX) === false) {
             @unlink($this->dropin_path());
             wp_die('De cache-activeringsmarkering kan niet worden geschreven. Drop-in teruggedraaid.', 'Installatie mislukt', ['response' => 500]);
