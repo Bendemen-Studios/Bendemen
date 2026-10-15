@@ -27,3 +27,7 @@ A separate, conservative full-page HTML cache for WordPress/WooCommerce. Smush r
 The drop-in needs `WP_CACHE` enabled and writable `wp-content/advanced-cache.php` plus `wp-content/cache/bendemen-booster-page-cache/`. Some managed hosts control or reserve the advanced-cache drop-in. If Cloud86 or an existing cache plugin owns that file, do not overwrite it; use the host-supported page cache instead.
 
 The drop-in only serves cache files for hosts whose name contains `bendemen.com`; verify production and staging hostnames before enabling. Cache is not enabled by this repository change and is not deployed to the live website automatically.
+
+## External Redis
+
+See [EXTERNAL-REDIS.md](./EXTERNAL-REDIS.md) for a secure, TLS-first setup using a compatible WordPress Redis object-cache drop-in. Bendemen Booster only reports configuration diagnostics; it does not create a Redis service or store Redis credentials. You need an endpoint and credentials from a Redis provider, and the WordPress host must be able to reach it securely.
