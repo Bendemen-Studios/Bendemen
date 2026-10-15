@@ -1,0 +1,22 @@
+name: Booster CI
+on:
+  push:
+    branches: [main, "booster/**"]
+  pull_request:
+    branches: [main]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm install --no-audit --no-fund
+      - run: npm run build
+        env:
+          BOOSTER_ADMIN_TOKEN: ci-placeholder-token
+          WORDPRESS_BRIDGE_SECRET: ci-placeholder-bridge-secret
+          WORDPRESS_URL: https://www.bendemen.com
+          MONITOR_TARGET_URL: https://www.bendemen.com

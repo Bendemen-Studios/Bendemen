@@ -1,61 +1,7 @@
-import Image from "next/image";
-import Link from "next/link";
-import { ArrowUpRight, Heart, PackageCheck, ShieldCheck } from "lucide-react";
-import { getProducts, formatPrice, type WooProduct } from "@/lib/woocommerce";
-import { SiteFooter, SiteHeader } from "@/components/site-chrome";
-
-export const revalidate = 60;
-
-const heroImage = "https://www.bendemen.com/wp-content/uploads/2026/02/streetwear-modellen-voor-graffiti-muur-bendemen-collection.jpg";
-
-export default async function Home() {
-  let products: WooProduct[] = [];
-  try { products = (await getProducts()).slice(0, 4); } catch {}
-
-  return (
-    <main className="wp-home">
-      <SiteHeader />
-      <section className="wp-hero" style={{ backgroundImage: `linear-gradient(90deg, rgba(0,0,0,.64) 0%, rgba(0,0,0,.28) 52%, rgba(0,0,0,.08) 100%), url("${heroImage}")` }}>
-        <div className="wp-hero-copy">
-          <span className="wp-eyebrow">BENDEMEN · STREETWEAR &amp; LIFESTYLE</span>
-          <h1>Bendemen</h1>
-          <p>Streetwear &amp; Lifestyle met karakter.</p>
-          <Link className="wp-red-button" href="/shop">Shop de Collectie <ArrowUpRight size={17} /></Link>
-        </div>
-        <span className="wp-hero-caption">BENDemen · EEN EIGEN MERK, EEN EIGEN KOERS</span>
-      </section>
-
-      <section className="wp-benefits" aria-label="Waarom Bendemen">
-        <div><ShieldCheck size={25} /><span><strong>Veilig bestellen</strong><small>Veilig afrekenen</small></span></div>
-        <div><PackageCheck size={25} /><span><strong>Levering &amp; service</strong><small>Duidelijke bestelupdates</small></span></div>
-        <div><Heart size={25} /><span><strong>Met karakter</strong><small>Voor iedereen die zichzelf blijft</small></span></div>
-      </section>
-
-      <section className="wp-products">
-        <div className="wp-section-heading">
-          <div><span className="wp-eyebrow">ONTDEK BENDEMEN</span><h2>Populaire Producten</h2></div>
-          <Link className="wp-text-link" href="/shop">Bekijk alle producten <ArrowUpRight size={16} /></Link>
-        </div>
-        {products.length ? (
-          <div className="wp-product-grid">
-            {products.map((product) => (
-              <Link className="wp-product-card" href={"/product/" + product.id} key={product.id}>
-                <div className="wp-product-image">
-                  {product.images?.[0]?.src ? <Image src={product.images[0].src} alt={product.images[0].alt || product.name} fill sizes="(max-width: 680px) 50vw, (max-width: 1000px) 33vw, 25vw" /> : <span className="wp-product-placeholder">B.</span>}
-                </div>
-                <div className="wp-product-info"><div><h3>{product.name}</h3><p>{product.categories?.[0]?.name || "BENDEMEN"}</p></div><strong>{formatPrice(product.price)}</strong></div>
-              </Link>
-            ))}
-          </div>
-        ) : (
-          <div className="wp-products-empty"><h3>Populaire Producten</h3><p>De producten konden nu niet worden geladen. Bekijk de volledige collectie in de shop.</p><Link className="wp-red-button" href="/shop">Naar de shop <ArrowUpRight size={17} /></Link></div>
-        )}
-      </section>
-
-      <section className="wp-story" id="verhaal">
-        <div><span className="wp-eyebrow">HET VERHAAL ACHTER BENDEMEN</span><h2>Streetwear &amp; Lifestyle<br /><em>met karakter.</em></h2><p>Bendemen staat voor premium kwaliteit en producten voor iedereen die zichzelf blijft.</p><Link className="wp-text-link" href="/het-verhaal">Lees het verhaal <ArrowUpRight size={16} /></Link></div>
-      </section>
-      <SiteFooter />
-    </main>
-  );
-}
+const modules = [
+  { n: "01", title: "Performance", text: "Responstijden, beschikbaarheid en Core Web Vitals." },
+  { n: "02", title: "WooCommerce", text: "Veilige diagnose van product- en winkelprocessen." },
+  { n: "03", title: "Integraties", text: "WordPress-connector en bestaande plugincompatibiliteit." },
+  { n: "04", title: "Beveiliging", text: "Toegang, geheimen en wijzigingenlogboek." },
+];
+export default function DashboardPage() { return <main className="shell"><aside className="sidebar"><a className="brand" href="/"><span className="brand-mark">B</span><span>BENDEMEN<small>BOOSTER</small></span></a><div className="nav-label">WERKRUIMTE</div><a className="nav-item active" href="/">◈　Overzicht</a><a className="nav-item" href="#performance">⌁　Prestaties</a><a className="nav-item" href="#woocommerce">▦　WooCommerce</a><a className="nav-item" href="#integrations">⟷　Integraties</a><a className="nav-item" href="#settings">⚙　Instellingen</a><div className="sidebar-bottom"><i/>Monitoring klaar om te configureren</div></aside><section className="main-area"><header className="topbar"><div><span className="crumb">BENDEMEN /</span> Booster dashboard</div><div className="top-right"><span className="env-chip">STAGING</span><span className="avatar">B</span></div></header><div className="content"><div className="intro"><div><div className="eyebrow">CENTRAAL BEHEER</div><h1>Goedemorgen<span>.</span></h1><p>Inzicht in prestaties, integraties en de gezondheid van je webshop.</p></div><div className="date-chip"><i/> Fundament geïnstalleerd · nog niet verbonden</div></div><div className="notice"><span className="notice-icon">i</span><div><strong>Veilige startmodus</strong><p>De Booster meet nog niets automatisch en wijzigt niets aan je live website. Koppel eerst de WordPress-connector en voer een nulmeting uit.</p></div></div><div className="metrics-grid" id="performance"><article className="metric-card"><div className="metric-label">Websitebeschikbaarheid <span>↗</span></div><div className="metric-value">—</div><div className="metric-foot">Wacht op eerste meting</div></article><article className="metric-card"><div className="metric-label">Responstijd <span>◷</span></div><div className="metric-value">— <small>ms</small></div><div className="metric-foot">Geen gegevens verzonnen</div></article><article className="metric-card"><div className="metric-label">Open waarschuwingen <span>!</span></div><div className="metric-value">0</div><div className="metric-foot">Monitoring nog niet actief</div></article><article className="metric-card"><div className="metric-label">Connector <span>⟷</span></div><div className="metric-value state-value">Niet gekoppeld</div><div className="metric-foot">WordPress-plugin vereist</div></article></div><div className="section-heading"><div><div className="eyebrow">MODULES</div><h2>Beheer in één overzicht</h2></div><span className="muted">FASE 1 · BASIS</span></div><div className="modules-grid">{modules.map(m => <article className="module-card" key={m.n} id={m.title === "WooCommerce" ? "woocommerce" : m.title === "Integraties" ? "integrations" : undefined}><div className="module-top"><span className="module-number">{m.n}</span><span className="module-arrow">↗</span></div><h3>{m.title}</h3><p>{m.text}</p><span className="module-status">BINNENKORT BESCHIKBAAR</span></article>)}</div><footer className="footer"><span>BENDEMEN BOOSTER · VEILIGE BEHEERLAAG</span><span>Poort 2003</span></footer></div></section></main>; }
