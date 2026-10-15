@@ -71,6 +71,10 @@ final class Bendemen_Booster_Connector {
             'litespeed-cache/litespeed-cache.php' => 'LiteSpeed Cache',
             'cache-enabler/cache-enabler.php' => 'Cache Enabler',
             'wp-fastest-cache/wpFastestCache.php' => 'WP Fastest Cache',
+            'bendemen-booster-cache/bendemen-booster-cache.php' => 'Bendemen Booster Cache',
+            '10web-booster/tenweb-booster.php' => '10Web Booster',
+            'tenweb-booster/tenweb-booster.php' => '10Web Booster',
+            'tenweb-speed-optimizer/tenweb-speed-optimizer.php' => '10Web Speed Optimizer',
         ];
         $active = (array) get_option('active_plugins', []);
         $found = [];
