@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Bendemen Booster Connector
  * Description: Authenticated health bridge and conservative frontend performance controls for Bendemen Booster.
- * Version: 0.2.0
+ * Version: 0.3.0
  * Author: Bendemen Studios
  * Requires PHP: 8.0
  * Requires Plugins: woocommerce
