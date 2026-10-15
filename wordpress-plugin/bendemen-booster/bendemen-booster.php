@@ -51,8 +51,43 @@ final class Bendemen_Booster_Connector {
                 'disableGuestDashicons' => $this->enabled(self::OPTION_DASHICONS, true),
                 'disableEmbeds' => $this->enabled(self::OPTION_EMBEDS, false),
             ],
+            'caching' => [
+                'persistentObjectCache' => wp_using_ext_object_cache(),
+                'objectCacheDropInPresent' => file_exists(WP_CONTENT_DIR . '/object-cache.php'),
+                'wpCacheConstantEnabled' => defined('WP_CACHE') && WP_CACHE,
+                'pageCachePluginDetected' => $this->detect_page_cache_plugin(),
+                'pageCachePlugins' => $this->get_page_cache_plugins(),
+                'note' => 'Full-page cache must be configured in a supported cache plugin or hosting layer. Exclude cart, checkout, account, logged-in and personalised responses.',
+            ],
             'checkedAt' => gmdate('c'),
         ], 200, ['Cache-Control' => 'no-store']);
+    }
+
+    private function get_page_cache_plugins(): array {
+        $known = [
+            'wp-super-cache/wp-cache.php' => 'WP Super Cache',
+            'w3-total-cache/w3-total-cache.php' => 'W3 Total Cache',
+            'wp-rocket/wp-rocket.php' => 'WP Rocket',
+            'litespeed-cache/litespeed-cache.php' => 'LiteSpeed Cache',
+            'cache-enabler/cache-enabler.php' => 'Cache Enabler',
+            'wp-fastest-cache/wpFastestCache.php' => 'WP Fastest Cache',
+        ];
+        $active = (array) get_option('active_plugins', []);
+        $found = [];
+        foreach ($known as $plugin => $label) {
+            if (in_array($plugin, $active, true)) { $found[] = $label; }
+        }
+        if (is_multisite()) {
+            $network = (array) get_site_option('active_sitewide_plugins', []);
+            foreach ($known as $plugin => $label) {
+                if (isset($network[$plugin]) && !in_array($label, $found, true)) { $found[] = $label; }
+            }
+        }
+        return $found;
+    }
+
+    private function detect_page_cache_plugin(): bool {
+        return count($this->get_page_cache_plugins()) > 0;
     }
 
     public function add_settings_page(): void {
