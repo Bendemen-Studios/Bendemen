@@ -30,7 +30,7 @@ Open http://localhost:3000.
 ## Manual production run (outside Pterodactyl)
 
 ```bash
-npm ci
+npm install
 npm run build
 PORT=3000 npm start
 ```
