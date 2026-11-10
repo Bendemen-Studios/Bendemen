@@ -64,7 +64,7 @@ a{color:inherit;text-decoration:none}
 .product-description img{max-width:100%;height:auto}
 @media(max-width:760px){.content-page{padding:48px 5% 70px}.product-detail-grid{grid-template-columns:1fr}.product-detail-image{height:90vw;min-height:280px}.form-row{grid-template-columns:1fr}}
 
-:root{--accent:#b99a55;--brand-gold:#c7a96a}
+:root{--accent:#C3110C;--brand-gold:#C3110C}
 .site-header nav a:hover,.text-link:hover{color:var(--brand-gold)}
 .button-dark:hover{background:var(--brand-gold);color:#171717}
 .sale-tag{background:#171717;color:var(--brand-gold);border:1px solid var(--brand-gold)}
@@ -79,7 +79,7 @@ a{color:inherit;text-decoration:none}
 .legal-content h3{font-size:17px;color:var(--ink);margin:26px 0 10px}
 .legal-content p,.legal-content ul,.legal-content ol{margin:0 0 17px}
 .legal-content ul,.legal-content ol{padding-left:24px}
-.legal-content a{color:#92743a;text-decoration:underline}
+.legal-content a{color:#C3110C;text-decoration:underline}
 .legal-content img{max-width:100%;height:auto}
 .legal-content table{width:100%;border-collapse:collapse;display:block;overflow-x:auto}
 .legal-content td,.legal-content th{border:1px solid var(--line);padding:10px;text-align:left}
