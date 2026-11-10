@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { PageShell } from "@/components/site-shell";
+import { getMediaUrl } from "@/lib/media";
 
 type CartItem = { key: string; id: number; quantity: number; name: string; prices: { price: string; currency_symbol: string }; images?: { src: string; alt?: string }[] };
 type Cart = {
@@ -87,7 +88,7 @@ export default function CartPage() {
     {!cart ? <p>Winkelwagen laden...</p> : cart.items.length === 0 ? <div className="empty-state"><h2>Je winkelwagen is leeg</h2><p>Ontdek de collectie en vind jouw favorieten.</p><Link className="button button-dark" href="/shop">Verder winkelen</Link></div> :
       <div className="cart-layout">
         <div className="cart-items">{cart.items.map(item => <article className="cart-item" key={item.key}>
-          <div className="cart-thumb">{item.images?.[0]?.src && <Image src={item.images[0].src} alt={item.images[0].alt || item.name} fill sizes="110px" />}</div>
+          <div className="cart-thumb">{item.images?.[0]?.src && <Image src={getMediaUrl(item.images[0].src)} unoptimized alt={item.images[0].alt || item.name} fill sizes="110px" />}</div>
           <div className="cart-item-info"><h2>{item.name}</h2><strong>{money(item.prices?.price)}</strong>
             <div className="quantity-control">
               <button aria-label="Aantal verlagen" onClick={() => mutate("update-item", { key: item.key, quantity: Math.max(0, item.quantity - 1) }, item.key)} disabled={!!busy}>−</button>

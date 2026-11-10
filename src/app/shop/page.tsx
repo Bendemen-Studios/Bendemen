@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { PageShell } from "@/components/site-shell";
 import { getProducts, formatPrice } from "@/lib/store-api";
+import { getMediaUrl } from "@/lib/media";
 
 export const metadata = { title: "Shop alle producten | Bendemen", description: "Bekijk de volledige Bendemen collectie: streetwear, kleding en lifestyle." };
 
@@ -21,7 +22,7 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
     {filtered.length ? <div className="product-grid">
       {filtered.map(product => <Link className="product-card" href={`/shop/${product.slug}`} key={product.id}>
         <div className="product-image">{product.is_on_sale && <span className="sale-tag">SALE</span>}
-          {product.images?.[0]?.src ? <Image src={product.images[0].src} alt={product.images[0].alt || product.name} fill sizes="(max-width: 640px) 50vw, (max-width: 1000px) 33vw, 25vw" /> : <div className="image-placeholder">BENDEMEN</div>}
+          {product.images?.[0]?.src ? <Image src={getMediaUrl(product.images[0].src)} unoptimized alt={product.images[0].alt || product.name} fill sizes="(max-width: 640px) 50vw, (max-width: 1000px) 33vw, 25vw" /> : <div className="image-placeholder">BENDEMEN</div>}
         </div><div className="product-meta"><h3>{product.name}</h3><span>{formatPrice(product.prices?.price)}</span></div>
         {product.is_on_sale && product.prices?.regular_price && <p className="regular-price">{formatPrice(product.prices.regular_price)}</p>}
       </Link>)}

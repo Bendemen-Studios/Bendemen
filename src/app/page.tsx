@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { PageShell } from "@/components/site-shell";
 import { getProducts, formatPrice } from "@/lib/store-api";
+import { getMediaUrl } from "@/lib/media";
 
 export default async function HomePage() {
   const products = await getProducts(8);
@@ -39,7 +40,7 @@ export default async function HomePage() {
                   <div className="product-image">
                     {product.is_on_sale && <span className="sale-tag">SALE</span>}
                     {image?.src
-                      ? <Image src={image.src} alt={image.alt || product.name} fill sizes="(max-width: 640px) 50vw, (max-width: 1000px) 33vw, 25vw" />
+                      ? <Image src={getMediaUrl(image.src)} unoptimized alt={image.alt || product.name} fill sizes="(max-width: 640px) 50vw, (max-width: 1000px) 33vw, 25vw" />
                       : <div className="image-placeholder">BENDEMEN</div>}
                   </div>
                   <div className="product-meta"><h3>{product.name}</h3><span>{formatPrice(product.prices?.price)}</span></div>
