@@ -9,7 +9,7 @@ export function SiteHeader() {
         <Link href="/">Home</Link><Link href="/shop">Shop</Link>
         <Link href="/het-verhaal">Het Verhaal</Link><Link href="/contact">Contact</Link>
       </nav>
-      <Link href="/winkelwagen" className="cart-link">Winkelwagen <span>0</span></Link>
+      <Link href="/winkelwagen" className="cart-link">Winkelwagen <span>↗</span></Link>
     </header>
   </>;
 }

@@ -84,3 +84,39 @@ a{color:inherit;text-decoration:none}
 .legal-content table{width:100%;border-collapse:collapse;display:block;overflow-x:auto}
 .legal-content td,.legal-content th{border:1px solid var(--line);padding:10px;text-align:left}
 .legal-error{padding:30px;background:var(--paper);text-align:center}
+
+.shop-toolbar{display:flex;align-items:center;gap:12px;max-width:900px;margin:0 auto 22px;flex-wrap:wrap}
+.shop-toolbar input[name=q]{flex:1;min-width:220px;padding:14px;border:1px solid var(--line);font:inherit}
+.sale-filter{display:flex;align-items:center;gap:8px;font-size:12px}
+.category-chips{display:flex;gap:8px;overflow:auto;padding:8px 0 28px;max-width:1200px;margin:auto}
+.category-chips a{border:1px solid var(--line);padding:9px 13px;white-space:nowrap;font-size:11px}
+.category-chips a:hover{border-color:var(--accent);color:var(--accent)}
+.product-gallery{display:grid;gap:12px}
+.product-gallery .product-detail-image{height:min(55vw,600px);min-height:300px}
+.product-detail-image img{object-fit:contain}
+.add-cart-wrap{margin:25px 0}
+.add-cart-wrap button:disabled{opacity:.55;cursor:wait}
+.cart-feedback{font-size:12px;color:var(--accent)}
+.full-description{border-top:1px solid var(--line);padding-top:22px;margin-top:28px}
+.cart-layout{display:grid;grid-template-columns:1.6fr 1fr;gap:35px;max-width:1100px;margin:auto}
+.cart-items{display:grid;gap:18px}
+.cart-item{display:flex;gap:18px;border-bottom:1px solid var(--line);padding-bottom:18px}
+.cart-thumb{width:110px;height:125px;position:relative;background:#f0efeb;flex-shrink:0}
+.cart-thumb img{object-fit:contain}
+.cart-item-info{flex:1}.cart-item-info h2{font-size:15px;margin:0 0 12px}
+.quantity-control{display:flex;align-items:center;gap:14px;margin-top:14px;font-size:13px}
+.quantity-control button{border:1px solid var(--line);background:white;padding:5px 10px;cursor:pointer}
+.quantity-control .remove-item{border:0;text-decoration:underline;margin-left:auto}
+.cart-summary{padding:25px;background:var(--paper);height:max-content}
+.cart-summary h2{font-size:20px}.cart-summary p{display:flex;justify-content:space-between;border-top:1px solid var(--line);padding-top:18px}
+.cart-summary small{display:block;color:#777;line-height:1.6;margin:16px 0 22px}
+.cart-summary .button{width:100%;justify-content:center}
+.checkout-form{max-width:760px;margin:auto;display:grid;gap:28px}
+.checkout-form section{display:grid;gap:16px}
+.checkout-form h2{font-size:21px;margin:0}
+.checkout-form label{display:grid;gap:7px;font-size:12px;font-weight:700}
+.checkout-form input:not([type=radio]),.checkout-form select{padding:13px;border:1px solid var(--line);font:inherit;background:#fff}
+.payment-choice{display:flex!important;align-items:center;border:1px solid var(--line);padding:14px;gap:12px!important}
+.payment-choice span{display:grid;gap:4px}.payment-choice small{font-weight:400;color:#777}
+.form-error{padding:12px;background:#fff0ef;color:#a10e09;font-size:13px}
+@media(max-width:760px){.cart-layout{grid-template-columns:1fr}.cart-thumb{width:88px;height:105px}.quantity-control{gap:8px}.product-gallery .product-detail-image{height:90vw}.shop-toolbar .button{padding:14px}}

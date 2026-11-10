@@ -1,46 +1,36 @@
 # Bendemen Storefront
 
-Headless WooCommerce storefront built with Next.js App Router, React, TypeScript and Tailwind CSS. The repository is configured to run as a Node.js server in the **Pterodactyl Generic Node.js egg**.
+Headless WooCommerce storefront using Next.js App Router, React, TypeScript and Tailwind CSS. Runs in the Pterodactyl Generic Node.js egg.
 
-## Pterodactyl (Generic Node.js egg)
+## Pterodactyl
+- Git repository: https://github.com/Bendemen-Studios/Bendemen
+- Branch: main
+- AUTO_UPDATE: 1
+- MAIN_FILE: index.ts
+- Node.js 22 LTS recommended (Node 25 currently supported by this project but not the preferred production LTS line)
+- Assigned allocation is read from SERVER_PORT.
 
-Use Node.js 22 or newer.
+The egg installs dependencies; `index.ts` builds and starts Next.js. Do not run PM2 inside Pterodactyl.
 
-1. Create a Pterodactyl server with the Generic Node.js egg and assign a primary allocation.
-2. Deploy this repository into `/home/container` (for a public repository, clone it into the server directory).
-3. Set the egg startup variable `MAIN_FILE` to `server.mjs`.
-4. Keep the egg's normal startup command so it installs dependencies and runs `node /home/container/${MAIN_FILE}`.
-5. Set WooCommerce environment variables in the server's Startup configuration if required. The public product listing only needs `WC_STORE_API_URL`.
-6. Start the server. `server.mjs` runs `npm run build` and then starts Next.js bound to `0.0.0.0` on Pterodactyl's assigned `SERVER_PORT`.
+## Environment
+`WC_STORE_API_URL=https://www.bendemen.com/wp-json/wc/store/v1`
+`WP_API_URL=https://www.bendemen.com/wp-json/wp/v2`
 
-The wrapper builds on each server start so a Git update followed by a restart cannot accidentally serve a stale Next.js build. This increases startup time but keeps deployment predictable. Do not run PM2 inside Pterodactyl; Wings already supervises the server process.
+Private WooCommerce keys are not required for public catalog and Store API cart operations. Never expose API secrets in NEXT_PUBLIC variables.
 
-See [PTERODACTYL.md](./PTERODACTYL.md) for panel values and deployment steps.
+## Implemented foundation
+- Home, shop, product detail routes, WordPress content pages and company/legal pages
+- Original WooCommerce catalog, prices, descriptions, product images and categories fetched live
+- Product search/category/sale filtering
+- Store API proxy with cart session cookies and nonce forwarding
+- Cart add/update/remove and checkout form/payment method handoff (must be verified against the live WooCommerce + Mollie gateway setup)
+- Bendemen visual identity with accent #C3110C
 
-## Local development
+## Migration / go-live safety
+The current WordPress website remains the source of truth for customer accounts, historical orders, refunds and payment settings. Customer account management and account-specific return/refund functions need a supported authentication integration before they can be moved fully. Do not change the production DNS or disable the WordPress frontend until end-to-end tests pass for product variations, shipping rates, taxes, coupons, guest checkout, customer login, Mollie redirects/webhooks, order confirmation, emails, refunds and privacy/cookie consent.
 
+## Local
 ```bash
-cp .env.example .env.local
 npm install
 npm run dev
 ```
-
-Open http://localhost:3000.
-
-## Manual production run (outside Pterodactyl)
-
-```bash
-npm install
-npm run build
-PORT=3000 npm start
-```
-
-## WooCommerce credentials
-
-Create a dedicated WooCommerce REST API key with least-privilege permissions. Keep private credentials in server environment variables only. Never expose them through `NEXT_PUBLIC_*` variables or browser code.
-
-## Current implementation scope
-
-Included: responsive Bendemen-style homepage, public WooCommerce product listing, price/sale display, server-side WooCommerce REST client foundation and Pterodactyl startup wrapper.
-
-Not yet production-ready for checkout: cart session persistence, product detail routes, customer accounts, checkout, Mollie payment handoff/webhooks, shipping/tax validation, search/filtering, legal pages, consent and end-to-end tests still need implementation. Keep the current production storefront active until those flows have been tested against WooCommerce staging.
