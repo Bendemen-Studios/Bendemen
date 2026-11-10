@@ -35,7 +35,7 @@ export default function CheckoutPage() {
   function change(e:React.ChangeEvent<HTMLInputElement|HTMLSelectElement>){setForm({...form,[e.target.name]:e.target.value});}
   function changeShipping(e:React.ChangeEvent<HTMLInputElement|HTMLSelectElement>){setShipping({...shipping,[e.target.name]:e.target.value});}
 
-  async function updateAddress() {
+  async function updateAddress(): Promise<string> {
     const shippingAddress=shippingDifferent?shipping:{...form};
     const response=await fetch("/api/store/cart/update-customer",{
       method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json",Nonce:nonce},
@@ -45,6 +45,9 @@ export default function CheckoutPage() {
     if(!response.ok)throw new Error(data.message||"Adresgegevens konden niet worden bijgewerkt.");
     setNonce(response.headers.get("X-WC-Store-API-Nonce")||nonce);
     setShippingRates(data.shipping_rates||[]);
+    const nextNonce=response.headers.get("X-WC-Store-API-Nonce")||nonce;
+    setNonce(nextNonce);
+    return nextNonce;
   }
 
   async function chooseShipping(packageId:number,rateId:string) {
@@ -63,8 +66,8 @@ export default function CheckoutPage() {
   async function submit(e:React.FormEvent){
     e.preventDefault();setLoading(true);setError("");
     try{
-      await updateAddress();
-      const r=await fetch("/api/store/checkout",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json",Nonce:nonce},body:JSON.stringify({billing_address:form,shipping_address:shippingDifferent?shipping:form,payment_method:method,payment_data:[]})});
+      const currentNonce=await updateAddress();
+      const r=await fetch("/api/store/checkout",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json",Nonce:currentNonce},body:JSON.stringify({billing_address:form,shipping_address:shippingDifferent?shipping:form,payment_method:method,payment_data:[]})});
       const data=await r.json();
       if(!r.ok)throw new Error(data.message||data?.errors?.[0]?.message||"Afrekenen is niet gelukt.");
       const redirect=data.payment_result?.redirect_url||data.redirect_url;
