@@ -3,6 +3,7 @@ import { PageShell } from "@/components/site-shell";
 import { getWordPressPage } from "@/lib/wordpress";
 
 const LEGAL_PAGES: Record<string, { wpSlug: string; fallbackTitle: string }> = {
+  "terms-and-conditions": { wpSlug: "terms-and-conditions", fallbackTitle: "Algemene voorwaarden" },
   "algemene-voorwaarden": { wpSlug: "terms-and-conditions", fallbackTitle: "Algemene voorwaarden" },
   "privacyverklaring-eu": { wpSlug: "privacyverklaring-eu", fallbackTitle: "Privacyverklaring" },
   "retour-beleid": { wpSlug: "retour-beleid", fallbackTitle: "Retourbeleid" },
@@ -11,6 +12,10 @@ const LEGAL_PAGES: Record<string, { wpSlug: string; fallbackTitle: string }> = {
   "goede-doelen": { wpSlug: "goede-doelen", fallbackTitle: "Goede doelen" },
   "cookiebeleid-eu": { wpSlug: "cookiebeleid-eu", fallbackTitle: "Cookiebeleid" }
 };
+
+function localizeWordPressLinks(html: string) {
+  return html.replace(/(href=["\'])https?:\\/\\/(?:www\\.)?bendemen\\.com(\\/[^"\']*)?(["\'])/gi, (_match, start, path = "/", end) => `${start}${path || "/"}${end}`);
+}
 
 export function generateStaticParams() {
   return Object.keys(LEGAL_PAGES).map(slug => ({ slug }));
@@ -33,11 +38,11 @@ export default async function WordPressContentPage({ params }: { params: Promise
   if (!page) return <PageShell><main className="content-page legal-page"><div className="legal-content legal-error">
     <p className="eyebrow">BENDEMEN / INFORMATIE</p><h1>{config.fallbackTitle}</h1>
     <p>Deze pagina kon momenteel niet uit WordPress worden opgehaald. Probeer het later opnieuw.</p>
-    <p>De oorspronkelijke pagina blijft beschikbaar op <a href={`https://www.bendemen.com/${config.wpSlug}/`}>www.bendemen.com</a>.</p>
+    <p>De oorspronkelijke pagina blijft beschikbaar op <a href={`/${config.wpSlug}/`}>www.bendemen.com</a>.</p>
   </div></main></PageShell>;
 
   return <PageShell><main className="content-page legal-page"><article className="legal-content">
     <p className="eyebrow">BENDEMEN / INFORMATIE</p><h1>{page.title.rendered}</h1>
-    <div dangerouslySetInnerHTML={{ __html: page.content.rendered }} />
+    <div dangerouslySetInnerHTML={{ __html: localizeWordPressLinks(page.content.rendered) }} />
   </article></main></PageShell>;
 }

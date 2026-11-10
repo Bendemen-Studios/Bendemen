@@ -15,7 +15,7 @@ export default async function HomePage() {
           <p className="eyebrow">BENDEMEN — STREETWEAR &amp; LIFESTYLE</p>
           <h1>STREETWEAR<br />MET KARAKTER.</h1>
           <p className="hero-subtitle">Ontdek de collectie. Gemaakt om op te vallen, ontworpen om bij je te passen.</p>
-          <Link className="button button-dark" href="/shop">Shop de collectie <span>↗</span></Link>
+          <Link className="button button-dark" href="/shop/">Shop de collectie <span>↗</span></Link>
         </div>
         <div className="hero-art" role="img" aria-label="Bendemen collectie grafische visual">
           <div className="hero-art-inner">
@@ -36,7 +36,7 @@ export default async function HomePage() {
             {products.map((product) => {
               const image = product.images?.[0];
               return (
-                <Link className="product-card" href={`/product/${product.slug}`} key={product.id}>
+                <Link className="product-card" href={`/shop/${product.slug}/` key={product.id}>
                   <div className="product-image">
                     {product.is_on_sale && <span className="sale-tag">SALE</span>}
                     {image?.src
@@ -61,7 +61,7 @@ export default async function HomePage() {
       <section className="story-strip">
         <p className="eyebrow">THE BENDEMEN STORY</p>
         <h2>Niet zomaar kleding.<br /><span>Een eigen karakter.</span></h2>
-        <Link href="/het-verhaal" className="button button-light">Ontdek ons verhaal ↗</Link>
+        <Link href="/het-verhaal/" className="button button-light">Ontdek ons verhaal ↗</Link>
       </section>
       </main>
     </PageShell>

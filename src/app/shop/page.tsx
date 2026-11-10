@@ -18,9 +18,9 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
   return <PageShell><main className="content-page shop-page">
     <div className="page-intro"><p className="eyebrow">BENDEMEN COLLECTION</p><h1>Shop alle producten</h1><p>Ontdek de collectie van Bendemen.</p></div>
     <form className="shop-toolbar" action="/shop"><input name="q" defaultValue={params.q||""} placeholder="Zoek producten..." aria-label="Zoek producten"/><button className="button button-dark">Zoeken</button><label className="sale-filter"><input type="checkbox" name="sale" value="1" defaultChecked={!!params.sale}/> Alleen SALE</label></form>
-    <nav className="category-chips" aria-label="Productcategorieën"><Link href="/shop">Alle producten</Link>{categories.map(c=><Link key={c.id} href={`/shop?categorie=${c.slug}`}>{c.name}</Link>)}</nav>
+    <nav className="category-chips" aria-label="Productcategorieën"><Link href="/shop/">Alle producten</Link>{categories.map(c=><Link key={c.id} href={`/shop?categorie=${c.slug}`}>{c.name}</Link>)}</nav>
     {filtered.length ? <div className="product-grid">
-      {filtered.map(product => <Link className="product-card" href={`/shop/${product.slug}`} key={product.id}>
+      {filtered.map(product => <Link className="product-card" href={`/shop/${product.slug}/` key={product.id}>
         <div className="product-image">{product.is_on_sale && <span className="sale-tag">SALE</span>}
           {product.images?.[0]?.src ? <Image src={getMediaUrl(product.images[0].src)} unoptimized alt={product.images[0].alt || product.name} fill sizes="(max-width: 640px) 50vw, (max-width: 1000px) 33vw, 25vw" /> : <div className="image-placeholder">BENDEMEN</div>}
         </div><div className="product-meta"><h3>{product.name}</h3><span>{formatPrice(product.prices?.price)}</span></div>
