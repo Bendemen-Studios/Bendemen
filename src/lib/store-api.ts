@@ -28,6 +28,10 @@ export type StoreProduct = {
 
 const API = process.env.WC_STORE_API_URL || "https://www.bendemen.com/wp-json/wc/store/v1";
 
+function hiddenProductSlugs() {
+  return new Set((process.env.HIDDEN_PRODUCT_SLUGS || "").split(",").map(value => value.trim().toLowerCase()).filter(Boolean));
+}
+
 function hiddenCategorySlugs() {
   return new Set((process.env.HIDDEN_PRODUCT_CATEGORY_SLUGS || "").split(",").map(value => value.trim().toLowerCase()).filter(Boolean));
 }
@@ -35,6 +39,7 @@ function hiddenCategorySlugs() {
 export function isCatalogVisible(product: StoreProduct) {
   if (product.status && product.status !== "publish") return false;
   if (product.hidden === true || product.is_visible === false || product.catalog_visibility === "hidden") return false;
+  if (hiddenProductSlugs().has(product.slug.toLowerCase())) return false;
   const hidden = hiddenCategorySlugs();
   return !(product.categories || []).some(category =>
     category.hidden === true || category.is_visible === false ||
