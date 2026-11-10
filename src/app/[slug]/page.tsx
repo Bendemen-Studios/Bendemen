@@ -14,7 +14,7 @@ const LEGAL_PAGES: Record<string, { wpSlug: string; fallbackTitle: string }> = {
 };
 
 function localizeWordPressLinks(html: string) {
-  return html.replace(/(href=["\'])https?:\\/\\/(?:www\\.)?bendemen\\.com(\\/[^"\']*)?(["\'])/gi, (_match, start, path = "/", end) => `${start}${path || "/"}${end}`);
+  return html.replace(/(href=["\'])https?:\/\/(?:www\.)?bendemen\.com(\/[^"\']*)?(["\'])/gi, (_match, start, path = "/", end) => `${start}${path || "/"}${end}`);
 }
 
 export function generateStaticParams() {
