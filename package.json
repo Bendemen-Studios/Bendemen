@@ -2,7 +2,15 @@
   "name": "bendemen-storefront",
   "version": "1.0.0",
   "private": true,
-  "scripts": { "dev": "next dev", "build": "next build", "start": "next start" },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start --hostname 0.0.0.0",
+    "pterodactyl": "node server.mjs"
+  },
   "dependencies": {
     "@woocommerce/woocommerce-rest-api": "^1.0.1",
     "next": "^15.5.6",
