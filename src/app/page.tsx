@@ -1,48 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
-
-type StoreProduct = {
-  id: number;
-  name: string;
-  slug: string;
-  prices?: { price?: string; regular_price?: string };
-  images?: { id: number; src: string; alt?: string }[];
-  is_on_sale?: boolean;
-};
-
-async function getProducts(): Promise<StoreProduct[]> {
-  const base = process.env.WC_STORE_API_URL || "https://www.bendemen.com/wp-json/wc/store/v1";
-  try {
-    const response = await fetch(`${base}/products?per_page=8&orderby=popularity`, {
-      next: { revalidate: 60 },
-      headers: { Accept: "application/json" }
-    });
-    if (!response.ok) return [];
-    return response.json();
-  } catch {
-    return [];
-  }
-}
-
-function formatPrice(raw?: string) {
-  if (!raw) return "";
-  return new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" })
-    .format(Number(raw) / 100);
-}
+import { PageShell } from "@/components/site-shell";
+import { getProducts, formatPrice } from "@/lib/store-api";
 
 export default async function HomePage() {
-  const products = await getProducts();
+  const products = await getProducts(8);
   return (
-    <main>
-      <div className="announcement">Streetwear &amp; Lifestyle met karakter.</div>
-      <header className="site-header">
-        <Link href="/" className="wordmark" aria-label="Bendemen home">BENDEMEN<span>®</span></Link>
-        <nav aria-label="Hoofdnavigatie">
-          <Link href="/">Home</Link><Link href="/shop">Shop</Link>
-          <Link href="/het-verhaal">Het Verhaal</Link><Link href="/contact">Contact</Link>
-        </nav>
-        <Link href="/winkelwagen" className="cart-link">Winkelwagen <span>0</span></Link>
-      </header>
+    <PageShell>
+      <main>
 
       <section className="hero">
         <div className="hero-copy">
@@ -97,11 +62,7 @@ export default async function HomePage() {
         <h2>Niet zomaar kleding.<br /><span>Een eigen karakter.</span></h2>
         <Link href="/het-verhaal" className="button button-light">Ontdek ons verhaal ↗</Link>
       </section>
-      <footer className="footer">
-        <Link href="/" className="wordmark">BENDEMEN<span>®</span></Link>
-        <p>Streetwear &amp; Lifestyle met karakter.</p>
-        <small>© {new Date().getFullYear()} Bendemen. Alle rechten voorbehouden.</small>
-      </footer>
-    </main>
+      </main>
+    </PageShell>
   );
 }
